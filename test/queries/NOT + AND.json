@@ -1,0 +1,30 @@
+{
+    "title": "SELECT dept, avg WHERE avg > 97",
+    "query": {
+        "WHERE": {
+            "NOT": {
+                "AND": [
+                    {
+                        "IS": {
+                            "courses_instructor": "crane*"
+                        }
+                    },
+                    {
+                        "GT": {
+                            "courses_avg": 99
+                        }
+                    }
+                ]
+            }
+        },
+        "OPTIONS": {
+            "COLUMNS": [
+                "courses_dept",
+                "courses_title"
+            ],
+            "ORDER": "courses_dept"
+        }
+    },
+    "isQueryValid": false,
+    "result": "ResultTooLargeError"
+}

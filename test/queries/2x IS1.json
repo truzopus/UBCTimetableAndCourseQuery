@@ -1,0 +1,19 @@
+{
+    "title": "SELECT dept, avg WHERE avg > 97",
+    "query": {
+        "WHERE": {
+            "IS": {
+                "courses_instructor": "crane, angela",
+                "courses_instructor": "holmes, reid"
+            }
+        },
+        "OPTIONS": {
+            "COLUMNS": [
+                "courses_dept",
+                "courses_avg"
+            ],
+            "ORDER": "courses_avg"
+        }
+    },
+    "isQueryValid": true,
+    "result":[{"courses_dept":"cpsc","courses_avg":79},{"courses_dept":"cpsc","courses_avg":81.17},{"courses_dept":"cpsc","courses_avg":89}]}

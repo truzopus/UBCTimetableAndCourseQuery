@@ -1,0 +1,38 @@
+{
+    "title": "SELECT dept, id, avg WHERE avg == 95 || avg > 90 && dept == 'adhe' ORDER BY avg",
+    "query": {
+        "WHERE": {
+            "AND": [
+                {
+                    "OR":[
+                        {
+                            "EQ": {
+                                "courses_fail": 20
+                            }
+                        },
+                        {
+                            "GT": {
+                                "courses_pass":50
+                            }
+                        }
+                    ]
+                },
+                {
+                    "IS": {
+                        "courses_instructor": "*holmes*"
+                    }
+                }
+            ]
+        },
+        "OPTIONS": {
+            "COLUMNS": [
+                "courses_dept",
+                "courses_id",
+                "courses_avg"
+            ],
+            "ORDER": "courses_avg"
+        }
+    },
+
+    "isQueryValid": true,
+    "result":[{"courses_dept":"math","courses_id":"103","courses_avg":70.29},{"courses_dept":"math","courses_id":"103","courses_avg":73.8},{"courses_dept":"cpsc","courses_id":"410","courses_avg":79},{"courses_dept":"cpsc","courses_id":"310","courses_avg":81.17}]}

@@ -1,0 +1,22 @@
+{
+    "title": "SELECT dept, avg WHERE avg > 97",
+    "query": {
+        "WHERE": {
+                "OR": [
+                    {
+                        "IS": {
+                            "courses_instructor": "crane*"
+                        }
+                    }
+                ]
+        },
+        "OPTIONS": {
+            "COLUMNS": [
+                "courses_dept",
+                "courses_title"
+            ],
+            "ORDER": "courses_dept"
+        }
+    },
+    "isQueryValid": true,
+    "result":[{"courses_dept":"chem","courses_title":"princpls chem i"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"thm kin org chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"thm kin org chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"strctr bond chem"}]}

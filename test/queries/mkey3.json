@@ -1,0 +1,18 @@
+{
+    "title": "SELECT dept, avg WHERE avg > 97",
+    "query": {
+        "WHERE": {
+            "EQ": {
+                "courses_audit":2
+            }
+        },
+        "OPTIONS": {
+            "COLUMNS": [
+                "courses_title",
+                "courses_year"
+            ],
+            "ORDER": "courses_year"
+        }
+    },
+    "isQueryValid": true,
+    "result":[{"courses_title":"adv biometrics","courses_year":1900},{"courses_title":"mult regres meth","courses_year":1900},{"courses_title":"rehab learning","courses_year":1900},{"courses_title":"eval src evidenc","courses_year":2010},{"courses_title":"mult regres meth","courses_year":2015}]}
