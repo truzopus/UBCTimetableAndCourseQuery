@@ -1,0 +1,20 @@
+{
+    "title": "SELECT dept, avg WHERE avg > 97",
+    "query": {
+        "WHERE": {
+            "IS": {
+                "courses_instructor": "crane, angela"
+            }
+        },
+        "OPTIONS": {
+            "COLUMNS": [
+                "courses_audit",
+                "courses_uuid",
+                "courses_year"
+            ],
+            "ORDER": "courses_year"
+        }
+    },
+    "isQueryValid": true,
+    "result":[{"courses_audit":0,"courses_uuid":"70064","courses_year":2014},{"courses_audit":0,"courses_uuid":"70065","courses_year":2014},{"courses_audit":0,"courses_uuid":"89214","courses_year":2015}]
+}

@@ -1,0 +1,19 @@
+{
+    "title": "SELECT dept, avg WHERE avg > 97",
+    "query": {
+        "WHERE": {
+            "EQ": {
+                "courses_fail":97
+            }
+        },
+        "OPTIONS": {
+            "COLUMNS": [
+                "courses_pass",
+                "courses_uuid"
+            ],
+            "ORDER": "courses_uuid"
+        }
+    },
+    "isQueryValid": true,
+    "result":[{"courses_pass":349,"courses_uuid":"29781"},{"courses_pass":1441,"courses_uuid":"70077"},{"courses_pass":846,"courses_uuid":"89239"}]
+}

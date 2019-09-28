@@ -1,0 +1,20 @@
+{
+    "title": "SELECT dept, avg WHERE avg > 97",
+    "query": {
+        "WHERE": {
+            "GT": {
+                "rooms_avg":97
+            }
+        },
+        "OPTIONS": {
+            "COLUMNS": [
+                "rooms_avg",
+                "rooms_dept"
+            ],
+            "ORDER": "rooms_avg"
+        }
+    },
+    "isQueryValid": false,
+    "result": "InsightError"
+
+}
