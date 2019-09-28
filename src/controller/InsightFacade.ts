@@ -44,7 +44,7 @@ export default class InsightFacade implements IInsightFacade {
         let c = new Buffer(content);
         let b = c.toString("base64");
         let zip = new JSZip();
-        zip.loadAsync(b).then()
+        zip.loadAsync(b).then();
         return true;
     }
     public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
