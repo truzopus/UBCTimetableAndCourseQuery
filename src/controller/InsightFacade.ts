@@ -132,7 +132,6 @@ export default class InsightFacade implements IInsightFacade {
             let that = this;
             let con = Buffer.from(content, "base64");
             let zip = new JSZip();
-            // tslint:disable-next-line:max-func-body-length
             return zip.loadAsync(con, {base64: true}).then(function (body: any) {
                 let p: any[] = [];
                 let coursesFolder = body.folder(/courses/);
@@ -144,9 +143,7 @@ export default class InsightFacade implements IInsightFacade {
                             }).catch(function (error: any) {
                                 return Promise.reject(new InsightError("Not JSON file, fail to parse"));
                             });
-                            p.push(jsonFile);
-                        }
-                    });
+                            p.push(jsonFile); }});
                     Promise.all(p).then((result: any) => {
                         let allCourses: any[] = [];
                         for (let courseSec of result) {
@@ -167,42 +164,24 @@ export default class InsightFacade implements IInsightFacade {
                                     courseSection["courses_audit"] = course["Audit"];
                                     courseSection["courses_uuid"] = String(course["id"]);
                                     courseSection["courses_year"] = Number(course["Year"]);
-                                    allCourses.push(courseSection);
-                                }
-                            }
-                        }
+                                    allCourses.push(courseSection); }}}
                         if (allCourses.length === 0) {
                             return Promise.reject(new InsightError("no valid course section"));
                         } else {
                             let dataset: InsightDataset = {
                                 id: id, kind: InsightDatasetKind.Courses,
-                                numRows: allCourses.length
-                            };
+                                numRows: allCourses.length};
                             that.memoDataset.datasetMemoList.push(dataset);
                             that.memoDataset.datasetInMemo[id] = allCourses;
-                            that.memoDataset.datasetMList.push(id)
-                            // tslint:disable-next-line:no-console
-                            console.log(that.memoDataset.datasetMList);
-                            // tslint:disable-next-line:no-console
-                            console.log(Object.keys(that.memoDataset.datasetInMemo));
+                            that.memoDataset.datasetMList.push(id);
                             fs.writeFile(diskDir + "/" + id + ".json", JSON.stringify(allCourses), (err: any) => {
-                                if (err) {
-                                    throw err;
-                                }
-                            });
-                            return Promise.resolve(that.memoDataset.datasetMList);
-                        }
+                                if (err) {throw err; }});
+                            return Promise.resolve(that.memoDataset.datasetMList); }
                     }).catch((error: any) => {
-                        return Promise.reject(new InsightError("promise.all failed"));
-                    });
-                } else {
-                    return Promise.reject(new InsightError("invalid dataset subdirectory"));
-                }
+                        return Promise.reject(new InsightError("promise.all failed")); });
+                } else { return Promise.reject(new InsightError("invalid dataset subdirectory")); }
             }).catch(function (error: any) {
-                return Promise.reject(new InsightError("fail to unzip dataset"));
-            });
-        }
-    }
+                return Promise.reject(new InsightError("fail to unzip dataset")); }); }}
 
     public removeDataset(id: string): Promise<string> {
         return Promise.reject("Not implemented.");
