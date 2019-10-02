@@ -117,9 +117,9 @@ export default class InsightFacade implements IInsightFacade {
     // }
 
     public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-        if (id === "" || id === null || id === undefined ||
+        if (/^\s+$/.test(id) || id === null || id === undefined ||
             kind === null || kind === undefined ||
-            content === "" || content === null || content === undefined) {
+            /^\s+$/.test(content) || content === null || content === undefined) {
             return Promise.reject(new InsightError("empty or null or undefined input parameter"));
         } else if (id.includes(("_")) || (kind !== InsightDatasetKind.Courses && kind !== InsightDatasetKind.Rooms)) {
             return Promise.reject(new InsightError("invalid input parameter"));
@@ -173,12 +173,15 @@ export default class InsightFacade implements IInsightFacade {
                             that.memoDataset.datasetMList.push(id);
                             fs.writeFile(diskDir + "/" + id + ".json", JSON.stringify(allCourses), (err: any) => {
                                 if (err) {throw err; }});
+                            // tslint:disable-next-line:no-console
+                            console.log(that.memoDataset.datasetMList);
                             return Promise.resolve(that.memoDataset.datasetMList); }
                     }).catch((error: any) => {
                         return Promise.reject(new InsightError("promise.all failed")); });
                 } else { return Promise.reject(new InsightError("invalid dataset subdirectory")); }
             }).catch(function (error: any) {
-                return Promise.reject(new InsightError("fail to unzip dataset")); }); }}
+                return Promise.reject(new InsightError("fail to unzip dataset")); });
+        }}
 
     public removeDataset(id: string): Promise<string> {
         return Promise.reject("Not implemented.");
