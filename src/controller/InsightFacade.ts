@@ -49,7 +49,6 @@ export default class InsightFacade implements IInsightFacade {
     //     let that = this;
     //     let con = Buffer.from(content, "base64");
     //     let zip = new JSZip();
-    //     // tslint:disable-next-line:max-func-body-length
     //     return zip.loadAsync(con, {base64: true}).then(function (body: any) {
     //         let p: any[] = [];
     //         let coursesFolder = body.folder(/courses/);
@@ -98,8 +97,6 @@ export default class InsightFacade implements IInsightFacade {
     //                     that.memoDataset.datasetMemoList.push(dataset);
     //                     that.memoDataset.datasetInMemo[id] = allCourses;
     //                     that.memoDataset.datasetMList.push(id)
-    //                     // tslint:disable-next-line:no-console
-    //                     console.log(that.memoDataset.datasetMList);
     //                     fs.writeFile(diskDir + "/" + id + ".json", JSON.stringify(allCourses), (err: any) => {
     //                         if (err) {
     //                             throw err;
