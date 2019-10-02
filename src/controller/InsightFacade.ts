@@ -21,10 +21,6 @@ class MemoDataset {
         this.datasetInMemo = datasetInMemo;
     }
 }
-
-let fs = require("fs");
-let diskDir = "./data";
-
 export default class InsightFacade implements IInsightFacade {
     // // object containing the in memory dataset variable
     private dobject: { [key: string]: any } = {};
@@ -44,32 +40,48 @@ export default class InsightFacade implements IInsightFacade {
         // let memoDataset = new MemoDataset(datasetMList, datasetMemoList, datasetInMemo);
     }
     private sectionCheck (course: any): boolean {
-        let sc: boolean = (("Course" in course) && ("Subject" in course) && ("Avg" in course)
-            && ("Title" in course) && ("Professor" in course) && ("Pass" in course)
-            && ("Fail" in course) && ("Year" in course)
-            && ("id" in course) && ("Audit" in course));
-        return sc;
+        if (("Subject" in course) && ("Course" in course) && ("Avg" in course) && ("Professor" in course)
+            && ("Title" in course)  && ("Pass" in course) && ("Fail" in course) && ("Audit" in course)
+            && ("id" in course) && ("Year" in course)) {
+            return true;
+        } else {
+            return false;
+        }
     }
     private datasetKeyConvert(courseSection: any, course: any): void {
-        courseSection["courses_dept"] = course["Subject"];
-        courseSection["courses_id"] = course["Course"];
-        courseSection["courses_avg"] = course["Avg"];
-        courseSection["courses_instructor"] = course["Professor"];
-        courseSection["courses_title"] = course["Title"];
-        courseSection["courses_pass"] = course["Pass"];
-        courseSection["courses_fail"] = course["Fail"];
-        courseSection["courses_audit"] = course["Audit"];
+        courseSection["courses_dept"] = String(course["Subject"]);
+        courseSection["courses_id"] = String(course["Course"]);
+        courseSection["courses_avg"] = Number(course["Avg"]);
+        courseSection["courses_instructor"] = String(course["Professor"]);
+        courseSection["courses_title"] = String(course["Title"]);
+        courseSection["courses_pass"] = Number(course["Pass"]);
+        courseSection["courses_fail"] = Number(course["Fail"]);
+        courseSection["courses_audit"] = Number(course["Audit"]);
         courseSection["courses_uuid"] = String(course["id"]);
-        courseSection["courses_year"] = Number(course["Year"]);
+        if (course["Section"] === "overall") {
+            courseSection["courses_year"] = 1900;
+        } else {
+            courseSection["courses_year"] = Number(course["Year"]);
+        }
     }
-    private updateMemory(id: string, allCourses: any, memoDataset: MemoDataset): void {
+    private updateMemory(id: string, dataFile: any, memoDataset: MemoDataset): void {
         let dataset: InsightDataset = {
             id: id, kind: InsightDatasetKind.Courses,
-            numRows: allCourses.length
+            numRows: dataFile.length
         };
         memoDataset.datasetMemoList.push(dataset);
-        memoDataset.datasetInMemo[id] = allCourses;
+        memoDataset.datasetInMemo[id] = dataFile;
         memoDataset.datasetMList.push(id);
+        let diskDir = "./data";
+        let fs = require("fs");
+        if (!fs.existsSync(diskDir)) {
+            fs.mkdirSync(diskDir);
+        }
+        fs.writeFile(diskDir + "/" + id + ".json", JSON.stringify(dataFile), (err: any) => {
+            if (err) {
+                throw err;
+            }
+        });
     }
     private invalidInputCheck(id: string, content: string, kind: InsightDatasetKind): boolean {
         if (/^\s+$/.test(id) || id === null || id === undefined ||
@@ -107,23 +119,18 @@ export default class InsightFacade implements IInsightFacade {
                         }
                     });
                     Promise.all(p).then((result: any) => {
-                        let allCourses: any[] = [];
+                        let dataFile: any[] = [];
                         for (let courseSec of result) {
                             for (let course of courseSec["result"]) {
                                 if (that.sectionCheck(course)) {
                                     let courseSection: any = {};
                                     that.datasetKeyConvert(courseSection, course);
-                                    allCourses.push(courseSection);
+                                    dataFile.push(courseSection);
                                 }
                             }
                         }
-                        if (allCourses.length >= 0) {
-                            that.updateMemory(id, allCourses, that.memoDataset);
-                            fs.writeFile(diskDir + "/" + id + ".json", JSON.stringify(allCourses), (err: any) => {
-                                if (err) {
-                                    throw err;
-                                }
-                            });
+                        if (dataFile.length >= 0) {
+                            that.updateMemory(id, dataFile, that.memoDataset);
                             return Promise.resolve(that.memoDataset.datasetMList);
                         }
                     }).catch((error: any) => {
