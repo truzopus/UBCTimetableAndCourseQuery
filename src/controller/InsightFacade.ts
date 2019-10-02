@@ -173,8 +173,6 @@ export default class InsightFacade implements IInsightFacade {
                             that.memoDataset.datasetMList.push(id);
                             fs.writeFile(diskDir + "/" + id + ".json", JSON.stringify(allCourses), (err: any) => {
                                 if (err) {throw err; }});
-                            // tslint:disable-next-line:no-console
-                            console.log(that.memoDataset.datasetMList);
                             return Promise.resolve(that.memoDataset.datasetMList); }
                     }).catch((error: any) => {
                         return Promise.reject(new InsightError("promise.all failed")); });
