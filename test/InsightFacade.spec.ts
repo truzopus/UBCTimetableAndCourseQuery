@@ -77,6 +77,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
             expect(result).to.deep.equal(expected);
         }).catch((err: any) => {
+            Log.info("err message");
+            Log.info(err);
             expect.fail(err, expected, "Should not have rejected");
         });
     });
@@ -104,18 +106,20 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Whitespace not Allowed");
+            // expect(response).to.deep.equal(InsightError, "Whitespace not Allowed");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
     it("Should add file different id", function () {
         const id: string = "courses";
-        const expected: string[] = [id, "hi"];
+        const expected: string[] = [ "hi", id];
         return insightFacade.addDataset("hi", datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
             return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses);
         }).then((response: string[]) => {
             expect(response).to.deep.equal(expected);
         }).catch((err: any) => {
+            Log.error(err);
             expect.fail(err, expected, "Should not have rejected");
         });
     });
@@ -127,7 +131,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Undefined Error");
+            // expect(response).to.deep.equal(InsightError, "Undefined Error");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -139,7 +144,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Undefined Error");
+            // expect(response).to.deep.equal(InsightError, "Undefined Error");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -151,7 +157,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Undefined Error");
+            // expect(response).to.deep.equal(InsightError, "Undefined Error");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -163,7 +170,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Undefined Error");
+            // expect(response).to.deep.equal(InsightError, "Undefined Error");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -175,7 +183,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Whitespace not Allowed");
+            // expect(response).to.deep.equal(InsightError, "Whitespace not Allowed");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -187,7 +196,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "ID is null");
+            // expect(response).to.deep.equal(InsightError, "ID is null");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -199,7 +209,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Underscore not Allowed");
+            // expect(response).to.deep.equal(InsightError, "Underscore not Allowed");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -212,7 +223,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Duplicates not Allowed");
+            // expect(response).to.deep.equal(InsightError, "Duplicates not Allowed");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -224,7 +236,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Wrong Dataset Type");
+            // expect(response).to.deep.equal(InsightError, "Wrong Dataset Type");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -236,7 +249,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Empty Dataset");
+            // expect(response).to.deep.equal(InsightError, "Empty Dataset");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -256,6 +270,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
             expect(result).to.deep.equal(expected);
         }).catch((err: any) => {
+            Log.error(err)
             expect.fail(err, expected, "Should not have rejected");
         });
     });
@@ -268,7 +283,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Empty Dataset");
+            // expect(response).to.deep.equal(InsightError, "Empty Dataset");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -280,7 +296,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Key value is not a string.");
+            // expect(response).to.deep.equal(InsightError, "Key value is not a string.");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -290,6 +307,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
             expect(result).to.deep.equal(expected);
         }).catch((err: any) => {
+            Log.error(err);
             expect.fail(err, expected, "Should not have rejected");
         });
     });
@@ -310,6 +328,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
             expect(result).to.deep.equal(expected);
         }).catch((err: any) => {
+            Log.error(err);
             expect.fail(err, expected, "Should not have rejected");
         });
     });
@@ -322,7 +341,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Missing a Type");
+            // expect(response).to.deep.equal(InsightError, "Missing a Type");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -334,7 +354,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Missing a Type");
+            // expect(response).to.deep.equal(InsightError, "Missing a Type");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -371,7 +392,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(NotFoundError, "Dataset does not exist");
+            // expect(response).to.deep.equal(NotFoundError, "Dataset does not exist");
+            expect(response).to.be.instanceOf(NotFoundError);
         }
     });
 
@@ -385,7 +407,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(NotFoundError, "Dataset does not exist");
+            // expect(response).to.deep.equal(NotFoundError, "Dataset does not exist");
+            expect(response).to.be.instanceOf(NotFoundError);
         }
     });
 
@@ -399,7 +422,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(NotFoundError, "Dataset does not exist");
+            // expect(response).to.deep.equal(NotFoundError, "Dataset does not exist");
+            expect(response).to.be.instanceOf(NotFoundError);
         }
     });
 
@@ -413,7 +437,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Whitespace not allowed");
+            // expect(response).to.deep.equal(InsightError, "Whitespace not allowed");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -426,7 +451,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Undefined Error");
+            // expect(response).to.deep.equal(InsightError, "Undefined Error");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -440,7 +466,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "ID is null");
+            // expect(response).to.deep.equal(InsightError, "ID is null");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
@@ -454,7 +481,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
         } catch (err) {
             response = err;
         } finally {
-            expect(response).to.deep.equal(InsightError, "Underscore not allowed");
+            // expect(response).to.deep.equal(InsightError, "Underscore not allowed");
+            expect(response).to.be.instanceOf(InsightError);
         }
     });
 
