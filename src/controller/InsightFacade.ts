@@ -21,6 +21,7 @@ class MemoDataset {
         this.datasetInMemo = datasetInMemo;
     }
 }
+
 export default class InsightFacade implements IInsightFacade {
     // // object containing the in memory dataset variable
     private dobject: { [key: string]: any } = {};
@@ -39,15 +40,17 @@ export default class InsightFacade implements IInsightFacade {
         // let datasetMList: string[] = [];
         // let memoDataset = new MemoDataset(datasetMList, datasetMemoList, datasetInMemo);
     }
-    private sectionCheck (course: any): boolean {
+
+    private sectionCheck(course: any): boolean {
         if (("Subject" in course) && ("Course" in course) && ("Avg" in course) && ("Professor" in course)
-            && ("Title" in course)  && ("Pass" in course) && ("Fail" in course) && ("Audit" in course)
+            && ("Title" in course) && ("Pass" in course) && ("Fail" in course) && ("Audit" in course)
             && ("id" in course) && ("Year" in course)) {
             return true;
         } else {
             return false;
         }
     }
+
     private datasetKeyConvert(courseSection: any, course: any): void {
         courseSection["courses_dept"] = String(course["Subject"]);
         courseSection["courses_id"] = String(course["Course"]);
@@ -64,6 +67,7 @@ export default class InsightFacade implements IInsightFacade {
             courseSection["courses_year"] = Number(course["Year"]);
         }
     }
+
     private updateMemory(id: string, dataFile: any, memoDataset: MemoDataset): void {
         let dataset: InsightDataset = {
             id: id, kind: InsightDatasetKind.Courses,
@@ -74,21 +78,19 @@ export default class InsightFacade implements IInsightFacade {
         memoDataset.datasetMList.push(id);
         let diskDir = "./data";
         let fs = require("fs");
-        if (!fs.existsSync(diskDir)) {
-            fs.mkdirSync(diskDir);
-        }
         fs.writeFile(diskDir + "/" + id + ".json", JSON.stringify(dataFile), (err: any) => {
             if (err) {
                 throw err;
             }
         });
     }
+
     private invalidInputCheck(id: string, content: string, kind: InsightDatasetKind): boolean {
         if (/^\s+$/.test(id) || id === null || id === undefined ||
             kind === null || kind === undefined ||
-            /^\s+$/.test(content) || content === null || content === undefined){
+            /^\s+$/.test(content) || content === null || content === undefined) {
             return true;
-        } else if (id.includes(("_")) || (kind !== InsightDatasetKind.Courses && kind !== InsightDatasetKind.Rooms)){
+        } else if (id.includes(("_")) || (kind !== InsightDatasetKind.Courses && kind !== InsightDatasetKind.Rooms)) {
             return true;
         } else {
             return false;
@@ -129,9 +131,11 @@ export default class InsightFacade implements IInsightFacade {
                                 }
                             }
                         }
-                        if (dataFile.length >= 0) {
+                        if (dataFile.length > 0) {
                             that.updateMemory(id, dataFile, that.memoDataset);
                             return Promise.resolve(that.memoDataset.datasetMList);
+                        } else {
+                            return Promise.reject(new InsightError("invalid (no valid course section) dataset"));
                         }
                     }).catch((error: any) => {
                         return Promise.reject(new InsightError("promise.all failed"));
@@ -141,8 +145,7 @@ export default class InsightFacade implements IInsightFacade {
                 }
             }).catch(function (error: any) {
                 return Promise.reject(new InsightError("fail to unzip dataset"));
-            });
-        }
+            });}
     }
 
     public removeDataset(id: string): Promise<string> {
