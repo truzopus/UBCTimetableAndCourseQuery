@@ -265,8 +265,7 @@ export default class InsightFacade implements IInsightFacade {
             let x = a[order];
             let y = b[order];
             return y < x ?  1
-                : y > x ? -1
-                    : 0; }); }
+                : y > x ? -1 : 0; }); }
     public filterFunction (result: any[], subKey: string, value: any, comparator: string): any[] {
         if (comparator === "GT") {
             return result.filter(function (el) {
