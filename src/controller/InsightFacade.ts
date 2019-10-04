@@ -15,11 +15,9 @@ export default class InsightFacade implements IInsightFacade {
     private dsList: InsightDataset[] = [];
     private dList: string[] = [];
     private memoDataset = new MemoDataset(this.dList, this.dsList, this.dobject);
-
     constructor() {
         Log.trace("InsightFacadeImpl::init()");
     }
-
     private sectionCheck(courseSec: any): boolean {
         return ("Subject" in courseSec) && ("Course" in courseSec) && ("Avg" in courseSec) && ("Professor" in courseSec)
             && ("Title" in courseSec) && ("Pass" in courseSec) && ("Fail" in courseSec) && ("Audit" in courseSec)
@@ -38,8 +36,7 @@ export default class InsightFacade implements IInsightFacade {
         if (courseSec["Section"] === "overall") {
             courseSection["courses_year"] = 1900;
         } else {
-            courseSection["courses_year"] = Number(courseSec["Year"]); }
-    }
+            courseSection["courses_year"] = Number(courseSec["Year"]); }}
 
     private updateMemory(id: string, dataFile: any, memoDataset: MemoDataset): void {
         let dataset: InsightDataset = {
@@ -53,10 +50,7 @@ export default class InsightFacade implements IInsightFacade {
         let fs = require("fs");
         fs.writeFile(diskDir + "/" + id + ".json", JSON.stringify(dataFile), (err: any) => {
             if (err) {
-                throw err;
-            }
-        });
-    }
+                throw err; }}); }
 
     private invalidInputCheck(id: string, content: string, kind: InsightDatasetKind): boolean {
         if (/^\s+$/.test(id) || id === null || id === undefined ||
@@ -66,9 +60,7 @@ export default class InsightFacade implements IInsightFacade {
         } else if (id.includes(("_")) || (kind !== InsightDatasetKind.Courses && kind !== InsightDatasetKind.Rooms)) {
             return true;
         } else {
-            return false;
-        }
-    }
+            return false; }}
 
     private invalidInputCheckRemove(id: string): boolean {
         if (/^\s+$/.test(id) || id === null || id === undefined ) {
@@ -77,6 +69,7 @@ export default class InsightFacade implements IInsightFacade {
             return true;
         } else {
             return false; }}
+
     public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
         if (this.invalidInputCheck(id, content, kind)) {
             return Promise.reject(new InsightError("invalid input parameter"));
@@ -180,6 +173,7 @@ export default class InsightFacade implements IInsightFacade {
                 let order = query.OPTIONS.ORDER;
                 result = that.sort(result, order); }
             return resolve(result); }); }
+
     public filter (query: any, key: string, mkey: string[], skey: string[], result: any[]): any[] {
         if (!this.comparatorErrorCheck(key)) {
             throw new InsightError(); }
@@ -230,11 +224,12 @@ export default class InsightFacade implements IInsightFacade {
                     throw new InsightError(); }
                 result = this.filterFunction(result, subKey, value, key); }}
         return result; }
+
     public databaseToResult(id: string): any[] {
         if (this.memoDataset.datasetInMemo[id] !== null || this.memoDataset.datasetInMemo[id] !== undefined) {
             return JSON.parse(JSON.stringify(this.memoDataset.datasetInMemo[id]));
-        }
-    }
+        }}
+
     public orderChecker(query: any, orderBoolean: boolean, optionsArray: string[],
                         skey: string[], mkey: string [], columnsArray: string[]): boolean {
         if (optionsArray.length === 1) {
@@ -246,6 +241,7 @@ export default class InsightFacade implements IInsightFacade {
             if (!columnsArray.includes(order)) {
                 throw new InsightError(); }}
         return true; }
+
     public syntaxChecker (query: any) {
         let objArray = Object.keys(query);
         if (objArray.length !== 2 || !objArray.includes("WHERE") || !objArray.includes("OPTIONS")) {
@@ -257,12 +253,14 @@ export default class InsightFacade implements IInsightFacade {
             throw new InsightError(); }
         if (optionsArray.length === 2 && !optionsArray.includes("ORDER")) {
             throw new InsightError(); }}
+
     public sort (result: any[], order: string) {
         return result.sort(function (a, b) {
             let x = a[order];
             let y = b[order];
             return y < x ?  1
                 : y > x ? -1 : 0; }); }
+
     public filterFunction (result: any[], subKey: string, value: any, comparator: string): any[] {
         if (comparator === "GT") {
             return result.filter(function (el) {
@@ -277,16 +275,18 @@ export default class InsightFacade implements IInsightFacade {
                 let temp = el[subKey];
                 return temp === value; });
         } else if (comparator === "IS") {
-            let input: RegExp = /^([*]?[a-z || , || " " || 0-9]*[*]?)$/;
+            let input: RegExp = /^([*]?[^*]*[*]?)$/;
             if (input.test(value)) {
                 return result.filter(function (el) {
                     let temp = el[subKey];
                     return new RegExp("^" + value.replace(/\*/g, ".*") + "$").test(temp);
                 }); } else {
                 throw new InsightError(); }}}
+
     public comparatorErrorCheck (key: string): boolean {
         let filters = ["AND", "OR", "GT", "LT", "EQ", "IS", "NOT"];
         return filters.includes(key); }
+
     public listDatasets(): Promise<InsightDataset[]> {
         return Promise.resolve(this.memoDataset.datasetMemoList); }
 }
