@@ -42,13 +42,9 @@ export default class InsightFacade implements IInsightFacade {
     }
 
     private sectionCheck(course: any): boolean {
-        if (("Subject" in course) && ("Course" in course) && ("Avg" in course) && ("Professor" in course)
+        return ("Subject" in course) && ("Course" in course) && ("Avg" in course) && ("Professor" in course)
             && ("Title" in course) && ("Pass" in course) && ("Fail" in course) && ("Audit" in course)
-            && ("id" in course) && ("Year" in course)) {
-            return true;
-        } else {
-            return false;
-        }
+            && ("id" in course) && ("Year" in course);
     }
 
     private datasetKeyConvert(courseSection: any, course: any): void {
@@ -120,9 +116,12 @@ export default class InsightFacade implements IInsightFacade {
                             p.push(jsonFile);
                         }
                     });
-                    Promise.all(p).then((result: any) => {
+                    return Promise.all(p).then((result: any) => {
                         let dataFile: any[] = [];
                         for (let courseSec of result) {
+                            if (courseSec === undefined || !("result" in courseSec)) {
+                                continue;
+                            }
                             for (let course of courseSec["result"]) {
                                 if (that.sectionCheck(course)) {
                                     let courseSection: any = {};
@@ -145,7 +144,7 @@ export default class InsightFacade implements IInsightFacade {
                 }
             }).catch(function (error: any) {
                 return Promise.reject(new InsightError("fail to unzip dataset"));
-            });}
+            }); }
     }
 
     public removeDataset(id: string): Promise<string> {

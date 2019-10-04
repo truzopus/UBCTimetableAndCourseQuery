@@ -113,12 +113,13 @@ describe("InsightFacade Add/Remove Dataset", function () {
 
     it("Should add file different id", function () {
         const id: string = "courses";
-        const expected: string[] = [id, "hi"];
+        const expected: string[] = [ "hi", id];
         return insightFacade.addDataset("hi", datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
             return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses);
         }).then((response: string[]) => {
             expect(response).to.deep.equal(expected);
         }).catch((err: any) => {
+            Log.error(err);
             expect.fail(err, expected, "Should not have rejected");
         });
     });
@@ -305,6 +306,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
             expect(result).to.deep.equal(expected);
         }).catch((err: any) => {
+            Log.error(err);
             expect.fail(err, expected, "Should not have rejected");
         });
     });
