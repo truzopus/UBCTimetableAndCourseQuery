@@ -16,5 +16,4 @@
         }
     },
     "isQueryValid": false,
-    "result": "InsightError"
-}
+    "result":[{"courses_dept":"chem","courses_avg":61.48},{"courses_dept":"chem","courses_avg":62.88},{"courses_dept":"chem","courses_avg":66.36}]}

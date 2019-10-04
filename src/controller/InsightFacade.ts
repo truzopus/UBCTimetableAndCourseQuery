@@ -144,7 +144,7 @@ export default class InsightFacade implements IInsightFacade {
             let columnsArray = query.OPTIONS.COLUMNS;
             if (!columnsArray.length) {
                 return reject(new InsightError()); }
-            let idRetriever = columnsArray[1];
+            let idRetriever = columnsArray[0];
             let id = idRetriever.split("_")[0];
             let mkey = [(id + "_avg"), (id + "_pass"), (id + "_fail"), (id + "_audit"), (id + "_year")];
             let skey = [(id + "_dept"), (id + "_id"), (id + "_instructor"), (id + "_title"), (id + "_uuid")];
@@ -164,9 +164,6 @@ export default class InsightFacade implements IInsightFacade {
             let whereArray = Object.keys(query.WHERE);
             try {
                 for (let key of whereArray) {
-                    if (!that.comparatorErrorCheck(key)) {
-                        return reject(new InsightError());
-                    }
                     result = that.filter(query.WHERE, key, mkey, skey, result);
                 }
             } catch (error) {
@@ -185,46 +182,52 @@ export default class InsightFacade implements IInsightFacade {
             return resolve(result); }); }
 
     public filter (query: any, key: string, mkey: string[], skey: string[], result: any[]): any[] {
+        if (!this.comparatorErrorCheck(key)) {
+            throw new InsightError(); }
         let subArray = Object.keys(query[key]);
+        let andArray = query[key];
         if (!subArray.length) {
             throw new InsightError(); }
         if (key === "AND") {
-            for (let subKey of subArray) {
-                result = this.filter(query[key], subKey, mkey, skey, result); }
+            for (let subKey of andArray) {
+                let temp = Object.keys(subKey);
+                for (let subSubKey of temp) {
+                    result = this.filter(subKey, subSubKey, mkey, skey, result); }}
             return result;
         } else if (key === "OR") {
-            let r1: any = [];
-            let r2: any = [];
-            for (let subKey of subArray) {
-                r2 = (this.filter(query[key], subKey, mkey, skey, result));
+            let r1: any = []; let r2: any = [];
+            for (let subKey of andArray) {
+                let temp = Object.keys(subKey);
+                for (let subSubKey of temp) {
+                    r2 = this.filter(subKey, subSubKey, mkey, skey, result); }
                 for (let keyKey of r2) {
                     if (!r1.includes(keyKey)) {
-                        r1.add(keyKey); }}
-                r2 = []; }
+                        r1.push(keyKey); }}}
             result = r1;
             return result;
         } else if (key === "NOT") {
             let temp: any = [];
             temp = result;
             for (let subKey of subArray) {
-                temp = this.filter(query[key], subKey, mkey, skey, result); }
+                temp = this.filter(query.NOT, subKey, mkey, skey, result); }
             result = result.filter(function (item) {
                 return !temp.includes(item); });
             return result;
-        } else if (key === "GT" || "LT" || "EQ") {
+        } else if (key === "GT" || key === "LT" || key === "EQ") {
             if (subArray.length > 1) {
                 throw new InsightError(); }
             for (let subKey of subArray) {
                 let value = query[key][subKey];
                 if (!mkey.includes(subKey) || isNaN(value)) {
-                    throw new InsightError();
-                    }
+                    throw new InsightError(); }
                 result = this.filterFunction(result, subKey, value, key); }
             return result;
         } else if (key === "IS") {
+            if (subArray.length > 1) {
+                throw new InsightError(); }
             for (let subKey of subArray) {
                 let value = query[key][subKey];
-                if (!skey.includes(subKey) || !value.isString()) {
+                if (!skey.includes(subKey) || typeof value !== "string") {
                     throw new InsightError(); }
                 result = this.filterFunction(result, subKey, value, key); }}
         return result; }
@@ -246,12 +249,10 @@ export default class InsightFacade implements IInsightFacade {
                 throw new InsightError(); }
             if (!columnsArray.includes(order)) {
                 throw new InsightError(); }}
-        return true;
-    }
-
+        return true; }
     public syntaxChecker (query: any) {
         let objArray = Object.keys(query);
-        if (objArray.length !== 2 || !objArray.includes("WHERE" && "OPTIONS")) {
+        if (objArray.length !== 2 || !objArray.includes("WHERE") || !objArray.includes("OPTIONS")) {
             throw new InsightError(); }
         let optionsArray: string[] = Object.keys(query.OPTIONS);
         if (optionsArray.length !== 1 && optionsArray.length !== 2) {
@@ -280,12 +281,11 @@ export default class InsightFacade implements IInsightFacade {
                 let temp = el[subKey];
                 return temp === value; });
         } else if (comparator === "IS") {
-            let input: RegExp = /[*]?[a-z]*[*]?/;
+            let input: RegExp = /^([*]?[a-z || , || " " || 0-9]*[*]?)$/;
             if (input.test(value)) {
-                let filteredValue: string = value.replace("*", "");
                 return result.filter(function (el) {
                     let temp = el[subKey];
-                    return temp.includes(filteredValue);
+                    return new RegExp("^" + value.replace(/\*/g, ".*") + "$").test(temp);
                 }); } else {
                 throw new InsightError(); }}}
     public comparatorErrorCheck (key: string): boolean {

@@ -15,6 +15,6 @@
             "ORDER": "courses_avg"
         }
     },
-    "isQueryValid": false,
-    "result": "InsightError"
+    "isQueryValid": true,
+    "result":[{"courses_dept":"frst","courses_avg":0},{"courses_dept":"lfs","courses_avg":0},{"courses_dept":"lfs","courses_avg":0},{"courses_dept":"wood","courses_avg":1},{"courses_dept":"busi","courses_avg":4},{"courses_dept":"busi","courses_avg":4},{"courses_dept":"fopr","courses_avg":4.5}]
 }

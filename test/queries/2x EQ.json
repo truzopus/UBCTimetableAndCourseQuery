@@ -15,6 +15,6 @@
             "ORDER": "courses_avg"
         }
     },
-    "isQueryValid": false,
-    "result": "InsightError"
+    "isQueryValid": true,
+    "result": []
 }
