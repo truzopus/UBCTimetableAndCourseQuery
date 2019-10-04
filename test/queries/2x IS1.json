@@ -15,5 +15,6 @@
             "ORDER": "courses_avg"
         }
     },
-    "isQueryValid": true,
-    "result":[{"courses_dept":"cpsc","courses_avg":79},{"courses_dept":"cpsc","courses_avg":81.17},{"courses_dept":"cpsc","courses_avg":89}]}
+    "isQueryValid": false,
+    "result": "InsightError"
+}

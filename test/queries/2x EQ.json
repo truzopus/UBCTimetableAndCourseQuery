@@ -15,5 +15,6 @@
             "ORDER": "courses_avg"
         }
     },
-    "isQueryValid": true,
-    "result":[{"courses_dept":"crwr","courses_avg":97},{"courses_dept":"epse","courses_avg":97},{"courses_dept":"psyc","courses_avg":97}]}
+    "isQueryValid": false,
+    "result": "InsightError"
+}
