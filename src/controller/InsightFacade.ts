@@ -1,5 +1,5 @@
 import Log from "../Util";
-import {IInsightFacade, InsightDataset, InsightDatasetKind, InsightError} from "./IInsightFacade";
+import {IInsightFacade, InsightDataset, InsightDatasetKind, InsightError, NotFoundError, ResultTooLargeError} from "./IInsightFacade";
 import * as JSZip from "jszip";
 
 /**
@@ -32,35 +32,28 @@ export default class InsightFacade implements IInsightFacade {
 
     constructor() {
         Log.trace("InsightFacadeImpl::init()");
-        // this.datasetMList = [];
-        // this.datasetMemoList = [];
-        // this.datasetInMemo = {};
-        // let datasetInMemo: object = {};
-        // let datasetMemoList: InsightDataset[] = [];
-        // let datasetMList: string[] = [];
-        // let memoDataset = new MemoDataset(datasetMList, datasetMemoList, datasetInMemo);
     }
 
-    private sectionCheck(course: any): boolean {
-        return ("Subject" in course) && ("Course" in course) && ("Avg" in course) && ("Professor" in course)
-            && ("Title" in course) && ("Pass" in course) && ("Fail" in course) && ("Audit" in course)
-            && ("id" in course) && ("Year" in course);
+    private sectionCheck(courseSec: any): boolean {
+        return ("Subject" in courseSec) && ("Course" in courseSec) && ("Avg" in courseSec) && ("Professor" in courseSec)
+            && ("Title" in courseSec) && ("Pass" in courseSec) && ("Fail" in courseSec) && ("Audit" in courseSec)
+            && ("id" in courseSec) && ("Year" in courseSec);
     }
 
-    private datasetKeyConvert(courseSection: any, course: any): void {
-        courseSection["courses_dept"] = String(course["Subject"]);
-        courseSection["courses_id"] = String(course["Course"]);
-        courseSection["courses_avg"] = Number(course["Avg"]);
-        courseSection["courses_instructor"] = String(course["Professor"]);
-        courseSection["courses_title"] = String(course["Title"]);
-        courseSection["courses_pass"] = Number(course["Pass"]);
-        courseSection["courses_fail"] = Number(course["Fail"]);
-        courseSection["courses_audit"] = Number(course["Audit"]);
-        courseSection["courses_uuid"] = String(course["id"]);
-        if (course["Section"] === "overall") {
+    private datasetKeyConvert(courseSection: any, courseSec: any): void {
+        courseSection["courses_dept"] = String(courseSec["Subject"]);
+        courseSection["courses_id"] = String(courseSec["Course"]);
+        courseSection["courses_avg"] = Number(courseSec["Avg"]);
+        courseSection["courses_instructor"] = String(courseSec["Professor"]);
+        courseSection["courses_title"] = String(courseSec["Title"]);
+        courseSection["courses_pass"] = Number(courseSec["Pass"]);
+        courseSection["courses_fail"] = Number(courseSec["Fail"]);
+        courseSection["courses_audit"] = Number(courseSec["Audit"]);
+        courseSection["courses_uuid"] = String(courseSec["id"]);
+        if (courseSec["Section"] === "overall") {
             courseSection["courses_year"] = 1900;
         } else {
-            courseSection["courses_year"] = Number(course["Year"]);
+            courseSection["courses_year"] = Number(courseSec["Year"]);
         }
     }
 
@@ -93,6 +86,16 @@ export default class InsightFacade implements IInsightFacade {
         }
     }
 
+    private invalidInputCheckRemove(id: string): boolean {
+        if (/^\s+$/.test(id) || id === null || id === undefined ) {
+            return true;
+        } else if (id.includes(("_"))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
         if (this.invalidInputCheck(id, content, kind)) {
             return Promise.reject(new InsightError("invalid input parameter"));
@@ -118,14 +121,14 @@ export default class InsightFacade implements IInsightFacade {
                     });
                     return Promise.all(p).then((result: any) => {
                         let dataFile: any[] = [];
-                        for (let courseSec of result) {
-                            if (courseSec === undefined || !("result" in courseSec)) {
+                        for (let course of result) {
+                            if (course === undefined || !("result" in course) || course === null) {
                                 continue;
                             }
-                            for (let course of courseSec["result"]) {
-                                if (that.sectionCheck(course)) {
+                            for (let courseSec of course["result"]) {
+                                if (that.sectionCheck(courseSec)) {
                                     let courseSection: any = {};
-                                    that.datasetKeyConvert(courseSection, course);
+                                    that.datasetKeyConvert(courseSection, courseSec);
                                     dataFile.push(courseSection); }}}
                         if (dataFile.length > 0) {
                             that.updateMemory(id, dataFile, that.memoDataset);
@@ -145,7 +148,21 @@ export default class InsightFacade implements IInsightFacade {
     }
 
     public removeDataset(id: string): Promise<string> {
-        return Promise.reject("Not implemented.");
+        if (this.invalidInputCheckRemove(id)) {
+            return Promise.reject(new InsightError("invalid input parameter"));
+        } else if (!this.memoDataset.datasetMList.includes(id)) {
+            return Promise.reject(new NotFoundError("dataset not yet added"));
+        } else {
+            let indexMList = this.memoDataset.datasetMList.indexOf(id);
+            let indexMemoList = this.memoDataset.datasetMemoList.map(function (item) { return item.id; }).indexOf(id);
+            if (indexMList > -1 && indexMemoList > -1) {
+                this.memoDataset.datasetMList.splice(indexMList, 1);
+                this.memoDataset.datasetMemoList.splice(indexMemoList, 1);
+                delete this.memoDataset.datasetInMemo[id];
+            }
+            return Promise.resolve(id);
+
+        }
     }
 
     public performQuery(query: any): Promise<any[]> {
