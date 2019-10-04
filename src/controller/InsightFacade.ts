@@ -162,25 +162,24 @@ export default class InsightFacade implements IInsightFacade {
             } catch (error) {
                 return reject(new InsightError()); }
             let whereArray = Object.keys(query.WHERE);
+            if (whereArray.length > 1) {
+                return reject(new InsightError()); }
             try {
                 for (let key of whereArray) {
                     result = that.filter(query.WHERE, key, mkey, skey, result);
                 }
             } catch (error) {
-                return reject(new InsightError());
-            }
+                return reject(new InsightError()); }
             if (result.length > 5000) {
                 return reject(new ResultTooLargeError()); }
             for (let key of mkey.concat(skey)) {
                 if (!columnsArray.includes(key)) {
                     result.forEach(function (v: any) {
-                        delete v[key]; });
-                }}
+                        delete v[key]; }); }}
             if (orderBoolean) {
                 let order = query.OPTIONS.ORDER;
                 result = that.sort(result, order); }
             return resolve(result); }); }
-
     public filter (query: any, key: string, mkey: string[], skey: string[], result: any[]): any[] {
         if (!this.comparatorErrorCheck(key)) {
             throw new InsightError(); }
@@ -233,12 +232,9 @@ export default class InsightFacade implements IInsightFacade {
         return result; }
     public databaseToResult(id: string): any[] {
         if (this.memoDataset.datasetInMemo[id] !== null || this.memoDataset.datasetInMemo[id] !== undefined) {
-            return this.memoDataset.datasetInMemo[id];
-        } else {
-            let request = new XMLHttpRequest();
-            request.open("GET", "./data/" + id + ".json", false);
-            request.send(null);
-            return JSON.parse(request.responseText); }}
+            return JSON.parse(JSON.stringify(this.memoDataset.datasetInMemo[id]));
+        }
+    }
     public orderChecker(query: any, orderBoolean: boolean, optionsArray: string[],
                         skey: string[], mkey: string [], columnsArray: string[]): boolean {
         if (optionsArray.length === 1) {
