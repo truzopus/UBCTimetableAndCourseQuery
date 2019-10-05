@@ -44,8 +44,7 @@ export default class InsightFacade implements IInsightFacade {
     private updateMemory(id: string, dataFile: any, memoDataset: MemoDataset): void {
         let dataset: InsightDataset = {
             id: id, kind: InsightDatasetKind.Courses,
-            numRows: dataFile.length
-        };
+            numRows: dataFile.length };
         memoDataset.datasetMemoList.push(dataset);
         memoDataset.datasetInMemo[id] = dataFile;
         memoDataset.datasetMList.push(id);
@@ -230,8 +229,10 @@ export default class InsightFacade implements IInsightFacade {
         return result; }
 
     public databaseToResult(id: string): any[] {
-        if (this.memoDataset.datasetInMemo[id] !== null || this.memoDataset.datasetInMemo[id] !== undefined) {
-            return JSON.parse(JSON.stringify(this.memoDataset.datasetInMemo[id])); }}
+       if (this.memoDataset.datasetInMemo[id] !== null || this.memoDataset.datasetInMemo[id] !== undefined) {
+            return JSON.parse(JSON.stringify(this.memoDataset.datasetInMemo[id])); } else {
+            let fs = require("fs");
+            return JSON.parse(fs.readFileSync("./data/" + id + ".json")); }}
 
     public orderChecker(query: any, orderBoolean: boolean, optionsArray: string[],
                         skey: string[], mkey: string [], columnsArray: string[]): boolean {
@@ -293,7 +294,6 @@ export default class InsightFacade implements IInsightFacade {
     public comparatorErrorCheck (key: string): boolean {
         let filters = ["AND", "OR", "GT", "LT", "EQ", "IS", "NOT"];
         return filters.includes(key); }
-
     public listDatasets(): Promise<InsightDataset[]> {
         return Promise.resolve(this.memoDataset.datasetMemoList); }
 }
