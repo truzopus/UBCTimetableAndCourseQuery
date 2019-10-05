@@ -2,9 +2,8 @@
     "title": "SELECT dept, avg WHERE avg > 97",
     "query": {
         "WHERE": {
-            "EQ": {
-                "courses_avg": 97,
-                "courses_avg": 99
+            "GT": {
+                "courses_avg":97
             }
         },
         "OPTIONS": {
@@ -12,9 +11,9 @@
                 "courses_dept",
                 "courses_avg"
             ],
-            "ORDER": "courses_avg"
+            "ORDER": 59
         }
     },
-    "isQueryValid": true,
-    "result": []
+    "isQueryValid": false,
+    "result": "InsightError"
 }

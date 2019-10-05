@@ -2,6 +2,7 @@ import Log from "../Util";
 import {IInsightFacade, InsightDataset, InsightDatasetKind,
     InsightError, NotFoundError, ResultTooLargeError} from "./IInsightFacade";
 import * as JSZip from "jszip";
+
 class MemoDataset {
     public datasetInMemo: { [key: string]: any };
     public datasetMemoList: InsightDataset[];
@@ -10,6 +11,7 @@ class MemoDataset {
         this.datasetMList = datasetMList;
         this.datasetMemoList = datasetMemoList;
         this.datasetInMemo = datasetInMemo; }}
+
 export default class InsightFacade implements IInsightFacade {
     private dobject: { [key: string]: any } = {};
     private dsList: InsightDataset[] = [];
@@ -18,6 +20,7 @@ export default class InsightFacade implements IInsightFacade {
     constructor() {
         Log.trace("InsightFacadeImpl::init()");
     }
+
     private sectionCheck(courseSec: any): boolean {
         return ("Subject" in courseSec) && ("Course" in courseSec) && ("Avg" in courseSec) && ("Professor" in courseSec)
             && ("Title" in courseSec) && ("Pass" in courseSec) && ("Fail" in courseSec) && ("Audit" in courseSec)
@@ -138,6 +141,8 @@ export default class InsightFacade implements IInsightFacade {
             if (!columnsArray.length) {
                 return reject(new InsightError()); }
             let idRetriever = columnsArray[0];
+            if (typeof idRetriever !== "string") {
+                return reject(new InsightError()); }
             let id = idRetriever.split("_")[0];
             let mkey = [(id + "_avg"), (id + "_pass"), (id + "_fail"), (id + "_audit"), (id + "_year")];
             let skey = [(id + "_dept"), (id + "_id"), (id + "_instructor"), (id + "_title"), (id + "_uuid")];
@@ -159,8 +164,7 @@ export default class InsightFacade implements IInsightFacade {
                 return reject(new InsightError()); }
             try {
                 for (let key of whereArray) {
-                    result = that.filter(query.WHERE, key, mkey, skey, result);
-                }
+                    result = that.filter(query.WHERE, key, mkey, skey, result); }
             } catch (error) {
                 return reject(new InsightError()); }
             if (result.length > 5000) {
@@ -227,13 +231,16 @@ export default class InsightFacade implements IInsightFacade {
 
     public databaseToResult(id: string): any[] {
         if (this.memoDataset.datasetInMemo[id] !== null || this.memoDataset.datasetInMemo[id] !== undefined) {
-            return JSON.parse(JSON.stringify(this.memoDataset.datasetInMemo[id]));
-        }}
+            return JSON.parse(JSON.stringify(this.memoDataset.datasetInMemo[id])); }}
 
     public orderChecker(query: any, orderBoolean: boolean, optionsArray: string[],
                         skey: string[], mkey: string [], columnsArray: string[]): boolean {
+        if (optionsArray.length !== 1 && optionsArray.length !== 2) {
+            throw new InsightError(); }
         if (optionsArray.length === 1) {
             return false; }
+        if (optionsArray.length === 2 && !optionsArray.includes("ORDER")) {
+            throw new InsightError(); }
         if (orderBoolean) {
             let order = query.OPTIONS.ORDER;
             if (!skey.includes(order) && !mkey.includes(order)) {
