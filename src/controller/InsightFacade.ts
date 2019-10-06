@@ -20,12 +20,12 @@ export default class InsightFacade implements IInsightFacade {
     constructor() {
         Log.trace("InsightFacadeImpl::init()");
     }
-    private static sectionCheck(courseSec: any): boolean {
+    private sectionCheck(courseSec: any): boolean {
         return ("Subject" in courseSec) && ("Course" in courseSec) && ("Avg" in courseSec) && ("Professor" in courseSec)
             && ("Title" in courseSec) && ("Pass" in courseSec) && ("Fail" in courseSec) && ("Audit" in courseSec)
             && ("id" in courseSec) && ("Year" in courseSec); }
 
-    private static datasetKeyConvert(courseSec: any): any {
+    private  datasetKeyConvert(courseSec: any): any {
         let courseSection: any = {};
         courseSection["courses_dept"] = String(courseSec["Subject"]);
         courseSection["courses_id"] = String(courseSec["Course"]);
@@ -42,7 +42,7 @@ export default class InsightFacade implements IInsightFacade {
             courseSection["courses_year"] = Number(courseSec["Year"]); }
         return courseSection; }
 
-    private static updateMemory(id: string, dataFile: any, memoDataset: MemoDataset): void {
+    private updateMemory(id: string, dataFile: any, memoDataset: MemoDataset): void {
         let dataset: InsightDataset = {
             id: id, kind: InsightDatasetKind.Courses,
             numRows: dataFile.length };
@@ -86,32 +86,31 @@ export default class InsightFacade implements IInsightFacade {
                 let p: any[] = [];
                 let coursesFolder = files.folder(/courses/);
                 if (coursesFolder.length === 1) {
-                    files.folder("courses").forEach(function (relativePath: any, file: { dir: any; name: string; }) {
+                    files.folder("courses").forEach(function (relativePath: any, file: any) {
                         if (!file.dir) {
-                            let jsonFile = files.file(file.name).async("text").then((json: any) => {
-                                return Promise.resolve(JSON.parse(json));
-                            }).catch(function (error: any) {
-                                return Promise.reject(new InsightError("Not JSON file, fail to parse")); });
-                            p.push(jsonFile); }});
-                    return Promise.all(p).then((result) => {
-                        let dataFile: any[] = [];
-                        for (let course of result) {
-                            if (course === undefined || !("result" in course) || course === null) {
-                                continue; }
-                            for (let courseSec of course["result"]) {
-                                if (InsightFacade.sectionCheck(courseSec)) {
-                                    let courseSection = InsightFacade.datasetKeyConvert(courseSec);
-                                    dataFile.push(courseSection); }}}
-                        if (dataFile.length > 0) {
-                            InsightFacade.updateMemory(id, dataFile, that.memoDataset);
-                            return Promise.resolve(that.memoDataset.datasetMList);
-                        } else {
-                            return Promise.reject(new InsightError("invalid (no valid course section) dataset")); }
-                    }).catch((error) => {
-                        return Promise.reject(new InsightError("loading dataset files failed (promise.all)")); });
-                } else {
-                    return Promise.reject(new InsightError("invalid dataset subdirectory")); }
-            }).catch(function (error) {
+                            p.push(file.async("text"));
+                        }
+                    }); }
+                return Promise.all(p).then((result: any) => {
+                            let dataFile: any[] = [];
+                            for (let ele of result) {
+                                try {
+                                    let course = JSON.parse(ele);
+                                    if (course === undefined || !("result" in course) || course === null) {
+                                        continue; }
+                                    for (let courseSec of course["result"]) {
+                                        if (that.sectionCheck(courseSec)) {
+                                            let courseSection = that.datasetKeyConvert(courseSec);
+                                            dataFile.push(courseSection); }}} catch (error) { // ignore
+                                 }}
+                            if (dataFile.length > 0) {
+                                that.updateMemory(id, dataFile, that.memoDataset);
+                                return Promise.resolve(that.memoDataset.datasetMList);
+                            } else {
+                                return Promise.reject(new InsightError("invalid (no valid course section) dataset")); }
+                    }).catch((error: any) => {
+                        return Promise.reject(new InsightError("promise.all failed")); });
+            }).catch(function (error: any) {
                 return Promise.reject(new InsightError("fail to unzip dataset")); }); }}
 
     public removeDataset(id: string): Promise<string> {
@@ -131,8 +130,7 @@ export default class InsightFacade implements IInsightFacade {
     public performQuery(query: any): Promise<any[]> {
         let that = this;
         return new Promise ((resolve, reject) => {
-            try {
-                that.syntaxChecker(query);
+            try { that.syntaxChecker(query);
             } catch (error) {
                 return reject(new InsightError()); }
             let optionsArray = Object.keys(query.OPTIONS);
@@ -168,13 +166,15 @@ export default class InsightFacade implements IInsightFacade {
                 return reject(new InsightError()); }
             if (result.length > 5000) {
                 return reject(new ResultTooLargeError()); }
-            for (let key of mkey.concat(skey)) {
-                if (!columnsArray.includes(key)) {
-                    result.forEach(function (v: any) {
-                        delete v[key]; }); }}
-            if (orderBoolean) {
-                let order = query.OPTIONS.ORDER;
-                result = that.sort(result, order); }
+            try {
+                for (let key of mkey.concat(skey)) {
+                    if (!columnsArray.includes(key)) {
+                        result.forEach(function (v: any) {
+                            delete v[key]; }); }}
+                if (orderBoolean) {
+                    let order = query.OPTIONS.ORDER;
+                    result = that.sort(result, order); }
+            } catch (error) { return reject(new InsightError()); }
             return resolve(result); }); }
 
     public filter (query: any, key: string, mkey: string[], skey: string[], result: any[]): any[] {
@@ -261,13 +261,11 @@ export default class InsightFacade implements IInsightFacade {
             throw new InsightError(); }
         if (optionsArray.length === 2 && !optionsArray.includes("ORDER")) {
             throw new InsightError(); }}
-
     public sort (result: any[], order: string) {
         return result.sort(function (a, b) {
             let x = a[order];
             let y = b[order];
             return y < x ?  1  : y > x ? -1 : 0; }); }
-
     public filterFunction (result: any[], subKey: any, value: any, comparator: string): any[] {
         if (comparator === "GT") {
             return result.filter(function (el) {
