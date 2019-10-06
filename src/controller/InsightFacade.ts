@@ -18,12 +18,13 @@ export default class InsightFacade implements IInsightFacade {
     constructor() {
         Log.trace("InsightFacadeImpl::init()");
     }
-    private sectionCheck(courseSec: any): boolean {
+    private static sectionCheck(courseSec: any): boolean {
         return ("Subject" in courseSec) && ("Course" in courseSec) && ("Avg" in courseSec) && ("Professor" in courseSec)
             && ("Title" in courseSec) && ("Pass" in courseSec) && ("Fail" in courseSec) && ("Audit" in courseSec)
             && ("id" in courseSec) && ("Year" in courseSec); }
 
-    private datasetKeyConvert(courseSection: any, courseSec: any): void {
+    private static datasetKeyConvert(courseSec: any): any {
+        let courseSection: any = {};
         courseSection["courses_dept"] = String(courseSec["Subject"]);
         courseSection["courses_id"] = String(courseSec["Course"]);
         courseSection["courses_avg"] = Number(courseSec["Avg"]);
@@ -36,9 +37,10 @@ export default class InsightFacade implements IInsightFacade {
         if (courseSec["Section"] === "overall") {
             courseSection["courses_year"] = 1900;
         } else {
-            courseSection["courses_year"] = Number(courseSec["Year"]); }}
+            courseSection["courses_year"] = Number(courseSec["Year"]); }
+        return courseSection; }
 
-    private updateMemory(id: string, dataFile: any, memoDataset: MemoDataset): void {
+    private static updateMemory(id: string, dataFile: any, memoDataset: MemoDataset): void {
         let dataset: InsightDataset = {
             id: id, kind: InsightDatasetKind.Courses,
             numRows: dataFile.length
@@ -52,7 +54,7 @@ export default class InsightFacade implements IInsightFacade {
             if (err) {
                 throw err; }}); }
 
-    private invalidInputCheck(id: string, content: string, kind: InsightDatasetKind): boolean {
+    private static invalidInputCheck(id: string, content: string, kind: InsightDatasetKind): boolean {
         if (/^\s+$/.test(id) || id === null || id === undefined ||
             kind === null || kind === undefined ||
             /^\s+$/.test(content) || content === null || content === undefined) {
@@ -62,7 +64,7 @@ export default class InsightFacade implements IInsightFacade {
         } else {
             return false; }}
 
-    private invalidInputCheckRemove(id: string): boolean {
+    private static invalidInputCheckRemove(id: string): boolean {
         if (/^\s+$/.test(id) || id === null || id === undefined ) {
             return true;
         } else if (id.includes(("_"))) {
@@ -71,7 +73,7 @@ export default class InsightFacade implements IInsightFacade {
             return false; }}
 
     public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-        if (this.invalidInputCheck(id, content, kind)) {
+        if (InsightFacade.invalidInputCheck(id, content, kind)) {
             return Promise.reject(new InsightError("invalid input parameter"));
         } else if (this.memoDataset.datasetMList.includes(id)) {
             return Promise.reject(new InsightError("dataset already added"));
@@ -79,41 +81,40 @@ export default class InsightFacade implements IInsightFacade {
             let that = this;
             let con = Buffer.from(content, "base64");
             let zip = new JSZip();
-            return zip.loadAsync(con, {base64: true}).then(function (body: any) {
+            return zip.loadAsync(con, {base64: true}).then(function (files: any) {
                 let p: any[] = [];
-                let coursesFolder = body.folder(/courses/);
+                let coursesFolder = files.folder(/courses/);
                 if (coursesFolder.length === 1) {
-                    body.folder("courses").forEach(function (relativePath: any, file: { dir: any; name: string; }) {
+                    files.folder("courses").forEach(function (relativePath: any, file: { dir: any; name: string; }) {
                         if (!file.dir) {
-                            let jsonFile = body.file(file.name).async("text").then((output: any) => {
-                                return Promise.resolve(JSON.parse(output));
+                            let jsonFile = files.file(file.name).async("text").then((json: any) => {
+                                return Promise.resolve(JSON.parse(json));
                             }).catch(function (error: any) {
                                 return Promise.reject(new InsightError("Not JSON file, fail to parse")); });
                             p.push(jsonFile); }});
-                    return Promise.all(p).then((result: any) => {
+                    return Promise.all(p).then((result) => {
                         let dataFile: any[] = [];
                         for (let course of result) {
                             if (course === undefined || !("result" in course) || course === null) {
                                 continue; }
                             for (let courseSec of course["result"]) {
-                                if (that.sectionCheck(courseSec)) {
-                                    let courseSection: any = {};
-                                    that.datasetKeyConvert(courseSection, courseSec);
+                                if (InsightFacade.sectionCheck(courseSec)) {
+                                    let courseSection = InsightFacade.datasetKeyConvert(courseSec);
                                     dataFile.push(courseSection); }}}
                         if (dataFile.length > 0) {
-                            that.updateMemory(id, dataFile, that.memoDataset);
+                            InsightFacade.updateMemory(id, dataFile, that.memoDataset);
                             return Promise.resolve(that.memoDataset.datasetMList);
                         } else {
                             return Promise.reject(new InsightError("invalid (no valid course section) dataset")); }
-                    }).catch((error: any) => {
-                        return Promise.reject(new InsightError("promise.all failed")); });
+                    }).catch((error) => {
+                        return Promise.reject(new InsightError("loading dataset files failed (promise.all)")); });
                 } else {
                     return Promise.reject(new InsightError("invalid dataset subdirectory")); }
-            }).catch(function (error: any) {
+            }).catch(function (error) {
                 return Promise.reject(new InsightError("fail to unzip dataset")); }); }}
 
     public removeDataset(id: string): Promise<string> {
-        if (this.invalidInputCheckRemove(id)) {
+        if (InsightFacade.invalidInputCheckRemove(id)) {
             return Promise.reject(new InsightError("invalid input parameter"));
         } else if (!this.memoDataset.datasetMList.includes(id)) {
             return Promise.reject(new NotFoundError("dataset not yet added"));
