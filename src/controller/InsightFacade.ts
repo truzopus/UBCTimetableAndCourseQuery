@@ -20,13 +20,13 @@ export default class InsightFacade implements IInsightFacade {
     constructor() {
         Log.trace("InsightFacadeImpl::init()");
     }
+
     private sectionCheck(courseSec: any): boolean {
         return ("Subject" in courseSec) && ("Course" in courseSec) && ("Avg" in courseSec) && ("Professor" in courseSec)
             && ("Title" in courseSec) && ("Pass" in courseSec) && ("Fail" in courseSec) && ("Audit" in courseSec)
             && ("id" in courseSec) && ("Year" in courseSec); }
 
-    private  datasetKeyConvert(courseSec: any): any {
-        let courseSection: any = {};
+    private datasetKeyConvert(courseSection: any, courseSec: any): void {
         courseSection["courses_dept"] = String(courseSec["Subject"]);
         courseSection["courses_id"] = String(courseSec["Course"]);
         courseSection["courses_avg"] = Number(courseSec["Avg"]);
@@ -39,8 +39,7 @@ export default class InsightFacade implements IInsightFacade {
         if (courseSec["Section"] === "overall") {
             courseSection["courses_year"] = 1900;
         } else {
-            courseSection["courses_year"] = Number(courseSec["Year"]); }
-        return courseSection; }
+            courseSection["courses_year"] = Number(courseSec["Year"]); }}
 
     private updateMemory(id: string, dataFile: any, memoDataset: MemoDataset): void {
         let dataset: InsightDataset = {
@@ -55,7 +54,7 @@ export default class InsightFacade implements IInsightFacade {
             if (err) {
                 throw err; }}); }
 
-    private static invalidInputCheck(id: string, content: string, kind: InsightDatasetKind): boolean {
+    private invalidInputCheck(id: string, content: string, kind: InsightDatasetKind): boolean {
         if (/^\s+$/.test(id) || id === null || id === undefined ||
             kind === null || kind === undefined ||
             /^\s+$/.test(content) || content === null || content === undefined) {
@@ -65,7 +64,7 @@ export default class InsightFacade implements IInsightFacade {
         } else {
             return false; }}
 
-    private static invalidInputCheckRemove(id: string): boolean {
+    private invalidInputCheckRemove(id: string): boolean {
         if (/^\s+$/.test(id) || id === null || id === undefined ) {
             return true;
         } else if (id.includes(("_"))) {
@@ -74,7 +73,7 @@ export default class InsightFacade implements IInsightFacade {
             return false; }}
 
     public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-        if (InsightFacade.invalidInputCheck(id, content, kind)) {
+        if (this.invalidInputCheck(id, content, kind)) {
             return Promise.reject(new InsightError("invalid input parameter"));
         } else if (this.memoDataset.datasetMList.includes(id)) {
             return Promise.reject(new InsightError("dataset already added"));
@@ -82,39 +81,40 @@ export default class InsightFacade implements IInsightFacade {
             let that = this;
             let con = Buffer.from(content, "base64");
             let zip = new JSZip();
-            return zip.loadAsync(con, {base64: true}).then(function (files: any) {
+            return zip.loadAsync(con, {base64: true}).then(function (body: any) {
                 let p: any[] = [];
-                let coursesFolder = files.folder(/courses/);
+                let coursesFolder = body.folder(/courses/);
                 if (coursesFolder.length === 1) {
-                    files.folder("courses").forEach(function (relativePath: any, file: any) {
+                    body.folder("courses").forEach(function (relativePath: any, file: any) {
                         if (!file.dir) {
                             p.push(file.async("text"));
                         }
                     }); }
                 return Promise.all(p).then((result: any) => {
-                            let dataFile: any[] = [];
-                            for (let ele of result) {
-                                try {
-                                    let course = JSON.parse(ele);
-                                    if (course === undefined || !("result" in course) || course === null) {
-                                        continue; }
-                                    for (let courseSec of course["result"]) {
-                                        if (that.sectionCheck(courseSec)) {
-                                            let courseSection = that.datasetKeyConvert(courseSec);
-                                            dataFile.push(courseSection); }}} catch (error) { // ignore
-                                 }}
-                            if (dataFile.length > 0) {
-                                that.updateMemory(id, dataFile, that.memoDataset);
-                                return Promise.resolve(that.memoDataset.datasetMList);
-                            } else {
-                                return Promise.reject(new InsightError("invalid (no valid course section) dataset")); }
-                    }).catch((error: any) => {
-                        return Promise.reject(new InsightError("promise.all failed")); });
+                    let dataFile: any[] = [];
+                    for (let ele of result) {
+                        try {
+                            let course = JSON.parse(ele);
+                            if (course === undefined || !("result" in course) || course === null) {
+                                continue; }
+                            for (let courseSec of course["result"]) {
+                                if (that.sectionCheck(courseSec)) {
+                                    let courseSection: any = {};
+                                    that.datasetKeyConvert(courseSection, courseSec);
+                                    dataFile.push(courseSection); }}} catch (error) { // ignore
+                        }}
+                    if (dataFile.length > 0) {
+                        that.updateMemory(id, dataFile, that.memoDataset);
+                        return Promise.resolve(that.memoDataset.datasetMList);
+                    } else {
+                        return Promise.reject(new InsightError("invalid (no valid course section) dataset")); }
+                }).catch((error: any) => {
+                    return Promise.reject(new InsightError("promise.all failed")); });
             }).catch(function (error: any) {
                 return Promise.reject(new InsightError("fail to unzip dataset")); }); }}
 
     public removeDataset(id: string): Promise<string> {
-        if (InsightFacade.invalidInputCheckRemove(id)) {
+        if (this.invalidInputCheckRemove(id)) {
             return Promise.reject(new InsightError("invalid input parameter"));
         } else if (!this.memoDataset.datasetMList.includes(id)) {
             return Promise.reject(new NotFoundError("dataset not yet added"));
@@ -229,7 +229,7 @@ export default class InsightFacade implements IInsightFacade {
         return result; }
 
     public databaseToResult(id: string): any[] {
-       if (this.memoDataset.datasetInMemo[id] !== null || this.memoDataset.datasetInMemo[id] !== undefined) {
+        if (this.memoDataset.datasetInMemo[id] !== null || this.memoDataset.datasetInMemo[id] !== undefined) {
             return JSON.parse(JSON.stringify(this.memoDataset.datasetInMemo[id])); } else {
             let fs = require("fs");
             return JSON.parse(fs.readFileSync("./data/" + id + ".json")); }}
