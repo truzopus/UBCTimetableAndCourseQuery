@@ -85,32 +85,32 @@ export default class InsightFacade implements IInsightFacade {
                 let p: any[] = [];
                 let coursesFolder = body.folder(/courses/);
                 if (coursesFolder.length === 1) {
-                    body.folder("courses").forEach(function (relativePath: any, file: { dir: any; name: string; }) {
+                    body.folder("courses").forEach(function (relativePath: any, file: any) {
                         if (!file.dir) {
-                            let jsonFile = body.file(file.name).async("text").then((output: any) => {
-                                return Promise.resolve(JSON.parse(output));
-                            }).catch(function (error: any) {
-                                return Promise.reject(new InsightError("Not JSON file, fail to parse")); });
-                            p.push(jsonFile); }});
-                    return Promise.all(p).then((result: any) => {
-                        let dataFile: any[] = [];
-                        for (let course of result) {
-                            if (course === undefined || !("result" in course) || course === null) {
-                                continue; }
-                            for (let courseSec of course["result"]) {
-                                if (that.sectionCheck(courseSec)) {
-                                    let courseSection: any = {};
-                                    that.datasetKeyConvert(courseSection, courseSec);
-                                    dataFile.push(courseSection); }}}
-                        if (dataFile.length > 0) {
-                            that.updateMemory(id, dataFile, that.memoDataset);
-                            return Promise.resolve(that.memoDataset.datasetMList);
-                        } else {
-                            return Promise.reject(new InsightError("invalid (no valid course section) dataset")); }
+                            p.push(file.async("text"));
+                        }
+                    }); }
+                return Promise.all(p).then((result: any) => {
+                            let dataFile: any[] = [];
+                            for (let ele of result) {
+                                try {
+                                    let course = JSON.parse(ele);
+                                    if (course === undefined || !("result" in course) || course === null) {
+                                        continue; }
+                                    for (let courseSec of course["result"]) {
+                                        if (that.sectionCheck(courseSec)) {
+                                            let courseSection: any = {};
+                                            that.datasetKeyConvert(courseSection, courseSec);
+                                            dataFile.push(courseSection); }}} catch (error) { // ignore
+                                    }
+                            }
+                            if (dataFile.length > 0) {
+                                that.updateMemory(id, dataFile, that.memoDataset);
+                                return Promise.resolve(that.memoDataset.datasetMList);
+                            } else {
+                                return Promise.reject(new InsightError("invalid (no valid course section) dataset")); }
                     }).catch((error: any) => {
                         return Promise.reject(new InsightError("promise.all failed")); });
-                } else {
-                    return Promise.reject(new InsightError("invalid dataset subdirectory")); }
             }).catch(function (error: any) {
                 return Promise.reject(new InsightError("fail to unzip dataset")); }); }}
 
@@ -261,13 +261,11 @@ export default class InsightFacade implements IInsightFacade {
             throw new InsightError(); }
         if (optionsArray.length === 2 && !optionsArray.includes("ORDER")) {
             throw new InsightError(); }}
-
     public sort (result: any[], order: string) {
         return result.sort(function (a, b) {
             let x = a[order];
             let y = b[order];
             return y < x ?  1  : y > x ? -1 : 0; }); }
-
     public filterFunction (result: any[], subKey: any, value: any, comparator: string): any[] {
         if (comparator === "GT") {
             return result.filter(function (el) {
@@ -289,7 +287,6 @@ export default class InsightFacade implements IInsightFacade {
                     return new RegExp("^" + value.replace(/\*/g, ".*") + "$").test(temp);
                 }); } else {
                 throw new InsightError(); }}}
-
     public comparatorErrorCheck (key: string): boolean {
         let filters = ["AND", "OR", "GT", "LT", "EQ", "IS", "NOT"];
         return filters.includes(key); }
