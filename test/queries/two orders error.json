@@ -2,9 +2,8 @@
     "title": "SELECT dept, avg WHERE avg > 97",
     "query": {
         "WHERE": {
-            "IS": {
-                "courses_instructor": "crane, angela",
-                "courses_instructor": "holmes, reid"
+            "GT": {
+                "courses_avg":97
             }
         },
         "OPTIONS": {
@@ -12,7 +11,8 @@
                 "courses_dept",
                 "courses_avg"
             ],
-            "ORDER": "courses_avg"
+            "ORDER": ["courses_avg",
+                "courses_dept"]
         }
     },
     "isQueryValid": false,
