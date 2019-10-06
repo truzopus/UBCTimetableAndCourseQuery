@@ -180,17 +180,16 @@ export default class InsightFacade implements IInsightFacade {
     public filter (query: any, key: string, mkey: string[], skey: string[], result: any[]): any[] {
         if (!this.comparatorErrorCheck(key)) {
             throw new InsightError(); }
-        let subArray = Object.keys(query[key]);
-        let andArray = query[key];
-        if (!subArray.length) {
-            throw new InsightError(); }
+        let subArray = Object.keys(query[key]); let andArray = query[key];
         if (key === "AND") {
+            if (!andArray.length) { throw new InsightError(); }
             for (let subKey of andArray) {
                 let temp = Object.keys(subKey);
                 for (let subSubKey of temp) {
                     result = this.filter(subKey, subSubKey, mkey, skey, result); }}
             return result;
         } else if (key === "OR") {
+            if (!andArray.length) { throw new InsightError(); }
             let r1: any = []; let r2: any = [];
             for (let subKey of andArray) {
                 let temp = Object.keys(subKey);
@@ -202,15 +201,16 @@ export default class InsightFacade implements IInsightFacade {
             result = r1;
             return result;
         } else if (key === "NOT") {
-            let temp: any = [];
-            temp = result;
+            if (subArray.length !== 1) {
+                throw new InsightError(); }
+            let temp: any = []; temp = result;
             for (let subKey of subArray) {
                 temp = this.filter(query.NOT, subKey, mkey, skey, result); }
             result = result.filter(function (item) {
                 return !temp.includes(item); });
             return result;
         } else if (key === "GT" || key === "LT" || key === "EQ") {
-            if (subArray.length > 1) {
+            if (subArray.length !== 1) {
                 throw new InsightError(); }
             for (let subKey of subArray) {
                 let value = query[key][subKey];
@@ -219,7 +219,7 @@ export default class InsightFacade implements IInsightFacade {
                 result = this.filterFunction(result, subKey, value, key); }
             return result;
         } else if (key === "IS") {
-            if (subArray.length > 1) {
+            if (subArray.length !== 1) {
                 throw new InsightError(); }
             for (let subKey of subArray) {
                 let value = query[key][subKey];
@@ -266,10 +266,9 @@ export default class InsightFacade implements IInsightFacade {
         return result.sort(function (a, b) {
             let x = a[order];
             let y = b[order];
-            return y < x ?  1
-                : y > x ? -1 : 0; }); }
+            return y < x ?  1  : y > x ? -1 : 0; }); }
 
-    public filterFunction (result: any[], subKey: string, value: any, comparator: string): any[] {
+    public filterFunction (result: any[], subKey: any, value: any, comparator: string): any[] {
         if (comparator === "GT") {
             return result.filter(function (el) {
                 let temp = el[subKey];
