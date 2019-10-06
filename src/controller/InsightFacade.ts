@@ -102,8 +102,7 @@ export default class InsightFacade implements IInsightFacade {
                                             let courseSection: any = {};
                                             that.datasetKeyConvert(courseSection, courseSec);
                                             dataFile.push(courseSection); }}} catch (error) { // ignore
-                                    }
-                            }
+                                 }}
                             if (dataFile.length > 0) {
                                 that.updateMemory(id, dataFile, that.memoDataset);
                                 return Promise.resolve(that.memoDataset.datasetMList);
