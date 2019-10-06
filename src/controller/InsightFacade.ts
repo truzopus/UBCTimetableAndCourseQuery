@@ -130,8 +130,7 @@ export default class InsightFacade implements IInsightFacade {
     public performQuery(query: any): Promise<any[]> {
         let that = this;
         return new Promise ((resolve, reject) => {
-            try {
-                that.syntaxChecker(query);
+            try { that.syntaxChecker(query);
             } catch (error) {
                 return reject(new InsightError()); }
             let optionsArray = Object.keys(query.OPTIONS);
@@ -167,13 +166,15 @@ export default class InsightFacade implements IInsightFacade {
                 return reject(new InsightError()); }
             if (result.length > 5000) {
                 return reject(new ResultTooLargeError()); }
-            for (let key of mkey.concat(skey)) {
-                if (!columnsArray.includes(key)) {
-                    result.forEach(function (v: any) {
-                        delete v[key]; }); }}
-            if (orderBoolean) {
-                let order = query.OPTIONS.ORDER;
-                result = that.sort(result, order); }
+            try {
+                for (let key of mkey.concat(skey)) {
+                    if (!columnsArray.includes(key)) {
+                        result.forEach(function (v: any) {
+                            delete v[key]; }); }}
+                if (orderBoolean) {
+                    let order = query.OPTIONS.ORDER;
+                    result = that.sort(result, order); }
+            } catch (error) { return reject(new InsightError()); }
             return resolve(result); }); }
 
     public filter (query: any, key: string, mkey: string[], skey: string[], result: any[]): any[] {
