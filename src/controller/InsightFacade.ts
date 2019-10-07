@@ -159,11 +159,12 @@ export default class InsightFacade implements IInsightFacade {
             let whereArray = Object.keys(query.WHERE);
             if (whereArray.length > 1) {
                 return reject(new InsightError()); }
-            try {
-                for (let key of whereArray) {
-                    result = that.filter(query.WHERE, key, mkey, skey, result); }
-            } catch (error) {
-                return reject(new InsightError()); }
+            if (whereArray.length === 1) {
+                try {
+                    for (let key of whereArray) {
+                        result = that.filter(query.WHERE, key, mkey, skey, result); }
+                } catch (error) {
+                    return reject(new InsightError()); }}
             if (result.length > 5000) {
                 return reject(new ResultTooLargeError()); }
             try {
@@ -180,7 +181,10 @@ export default class InsightFacade implements IInsightFacade {
     public filter (query: any, key: string, mkey: string[], skey: string[], result: any[]): any[] {
         if (!this.comparatorErrorCheck(key)) {
             throw new InsightError(); }
-        let subArray = Object.keys(query[key]); let andArray = query[key];
+        let subArray: any = []; let andArray: any = [];
+        try {
+            subArray = Object.keys(query[key]); andArray = query[key]; } catch (error) {
+            throw new InsightError(); }
         if (key === "AND") {
             if (!andArray.length) { throw new InsightError(); }
             for (let subKey of andArray) {
@@ -196,18 +200,15 @@ export default class InsightFacade implements IInsightFacade {
                 for (let subSubKey of temp) {
                     r2 = this.filter(subKey, subSubKey, mkey, skey, result); }
                 for (let keyKey of r2) {
-                    if (!r1.includes(keyKey)) {
-                        r1.push(keyKey); }}}
-            result = r1;
-            return result;
+                    if (!r1.includes(keyKey)) { r1.push(keyKey); }}}
+            result = r1; return result;
         } else if (key === "NOT") {
             if (subArray.length !== 1) {
                 throw new InsightError(); }
             let temp: any = []; temp = result;
             for (let subKey of subArray) {
                 temp = this.filter(query.NOT, subKey, mkey, skey, result); }
-            result = result.filter(function (item) {
-                return !temp.includes(item); });
+            result = result.filter(function (item) { return !temp.includes(item); });
             return result;
         } else if (key === "GT" || key === "LT" || key === "EQ") {
             if (subArray.length !== 1) {
@@ -261,11 +262,13 @@ export default class InsightFacade implements IInsightFacade {
             throw new InsightError(); }
         if (optionsArray.length === 2 && !optionsArray.includes("ORDER")) {
             throw new InsightError(); }}
+
     public sort (result: any[], order: string) {
         return result.sort(function (a, b) {
             let x = a[order];
             let y = b[order];
             return y < x ?  1  : y > x ? -1 : 0; }); }
+
     public filterFunction (result: any[], subKey: any, value: any, comparator: string): any[] {
         if (comparator === "GT") {
             return result.filter(function (el) {
@@ -290,6 +293,7 @@ export default class InsightFacade implements IInsightFacade {
     public comparatorErrorCheck (key: string): boolean {
         let filters = ["AND", "OR", "GT", "LT", "EQ", "IS", "NOT"];
         return filters.includes(key); }
+
     public listDatasets(): Promise<InsightDataset[]> {
         return Promise.resolve(this.memoDataset.datasetMemoList); }
 }
