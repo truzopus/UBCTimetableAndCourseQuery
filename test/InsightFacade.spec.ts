@@ -20,6 +20,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
     // automatically be loaded in the 'before' hook.
     const datasetsToLoad: { [id: string]: string } = {
         courses: "./test/data/courses.zip",
+        rooms2: "./test/data/rooms2.zip",
         rooms: "./test/data/rooms.zip",
         under_scoreValid: "./test/data/courses.zip",
         InvalidDatasetEmpty: "./test/data/courses_invalidEmpty.zip",
@@ -85,7 +86,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
 
     it("Should add multiple valid datasets", function () {
         const id: string = "courses";
-        const id2: string = "rooms";
+        const id2: string = "rooms2";
         const expected: string[] = [id, id2];
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
             return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
@@ -99,7 +100,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
     it("Should not add datasets with same id", async () => {
         let response: string[];
         const id: string = "courses";
-        const id2: string = "rooms";
+        const id2: string = "rooms2";
         try {
             await insightFacade.addDataset(id, datasets[id2], InsightDatasetKind.Rooms);
             response = await insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses);
@@ -373,7 +374,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
 
     it("Should remove valid dataset when there is more than one", function () {
         const id: string = "courses";
-        const id2: string = "rooms";
+        const id2: string = "rooms2";
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then ((result: string[]) => {
             return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
         }).then((response: string[]) => {
@@ -401,7 +402,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
     it("Remove wrong dataset", async () => {
         let response: string;
         const id: string = "courses";
-        const id2: string = "rooms";
+        const id2: string = "rooms2";
         try {
             await insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
             response = await insightFacade.removeDataset(id);
@@ -510,9 +511,9 @@ describe("InsightFacade Add/Remove Dataset", function () {
 
     it("List dataset with multiple courses", function () {
         const id: string = "courses";
-        const id2: string = "rooms";
+        const id2: string = "rooms2";
         const expected: InsightDataset[] = [{id: "courses", kind: InsightDatasetKind.Courses, numRows: 64612}
-        , {id: "rooms", kind: InsightDatasetKind.Rooms, numRows: 64612}];
+        , {id: "rooms2", kind: InsightDatasetKind.Rooms, numRows: 64612}];
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then ((result: string[]) => {
             return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
         }).then((response: string[]) => {
