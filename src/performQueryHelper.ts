@@ -163,28 +163,30 @@ export default class PerformQueryHelper {
         if (subArray.length !== 1) {
             throw new InsightError();
         }
+        let temp = [];
         for (let subKey of subArray) {
             let value = query[key][subKey];
             if (!mkey.includes(subKey) || isNaN(value)) {
                 throw new InsightError();
             }
-            result = this.filterFunction(result, subKey, value, key);
+            temp = this.filterFunction(result, subKey, value, key);
         }
-        return result;
+        return temp;
     }
 
     public static sComparison(subArray: string[], skey: string[], query: any, key: string, result: any): any[] {
         if (subArray.length !== 1) {
             throw new InsightError();
         }
+        let temp = [];
         for (let subKey of subArray) {
             let value = query[key][subKey];
             if (!skey.includes(subKey) || typeof value !== "string") {
                 throw new InsightError();
             }
-            result = this.filterFunction(result, subKey, value, key);
+            temp = this.filterFunction(result, subKey, value, key);
         }
-        return result;
+        return temp;
     }
 
     public static filterFunction(result: any[], subKey: any, value: any, comparator: string): any[] {

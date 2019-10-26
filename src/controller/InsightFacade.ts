@@ -180,9 +180,7 @@ export default class InsightFacade implements IInsightFacade {
                 orderBoolean = syntax.orderChecker(query, Object.keys(query.OPTIONS), query.OPTIONS.COLUMNS, where);
                 result = that2.databaseToResult(id);
                 if (where.length === 1) {
-                    for (let key of where) {
-                        result = that.filter(query.WHERE, key, mkey, skey, result);
-                    }
+                    result = that.filter(query.WHERE, Object.keys(query.WHERE)[0], mkey, skey, result);
                 }
                 if (Object.keys(query).length === 3) {
                     applykey = helper.appkey(query);
@@ -192,15 +190,15 @@ export default class InsightFacade implements IInsightFacade {
             } catch (error) {
                 return reject(new InsightError());
             }
+            if (result.length > 5000) {
+                throw new ResultTooLargeError();
+            }
             try {
                 syntax.columnChecker(query, groupkey, mkey, skey, applykey);
                 helper.deleteKeys(result, mkey, skey, groupkey, applykey, query);
                 result = helper.sortFunction(result, query, orderBoolean);
             } catch (error) {
                 return reject(error);
-            }
-            if (result.length > 5000) {
-                throw new ResultTooLargeError();
             }
             return resolve(result);
         });

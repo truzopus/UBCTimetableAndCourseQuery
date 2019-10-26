@@ -30,30 +30,32 @@ export default class Syntax {
         if (where.length > 1) {
             throw new InsightError();
         }
-        let x = query.OPTIONS.ORDER;
-        switch (typeof x) {
-            case "object":
-                let y = Object.keys(x);
-                if (!y.includes("dir") || !y.includes("keys") || y.length !== 2 || !x.keys.length) {
-                    throw new InsightError();
-                }
-                if (x["dir"] !== "UP" && x["dir"] !== "DOWN") {
-                    throw new InsightError();
-                }
-                let z = x["keys"];
-                for (let key of z) {
-                    if (!columnsArray.includes(key)) {
+        if (optionsArray.length === 2) {
+            let x = query.OPTIONS.ORDER;
+            switch (typeof x) {
+                case "object":
+                    let y = Object.keys(x);
+                    if (!y.includes("dir") || !y.includes("keys") || y.length !== 2 || !x.keys.length) {
                         throw new InsightError();
                     }
-                }
-                return true;
-            case "string":
-                if (!columnsArray.includes(x)) {
+                    if (x["dir"] !== "UP" && x["dir"] !== "DOWN") {
+                        throw new InsightError();
+                    }
+                    let z = x["keys"];
+                    for (let key of z) {
+                        if (!columnsArray.includes(key)) {
+                            throw new InsightError();
+                        }
+                    }
+                    return true;
+                case "string":
+                    if (!columnsArray.includes(x)) {
+                        throw new InsightError();
+                    }
+                    return false;
+                default:
                     throw new InsightError();
-                }
-                return false;
-            default:
-                throw new InsightError();
+            }
         }
     }
 
