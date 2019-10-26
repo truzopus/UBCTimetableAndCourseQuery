@@ -22,6 +22,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
         courses: "./test/data/courses.zip",
         rooms2: "./test/data/rooms2.zip",
         rooms: "./test/data/rooms.zip",
+        roomsNoIndex: "./test/data/roomsNoIndex.zip",
         under_scoreValid: "./test/data/courses.zip",
         InvalidDatasetEmpty: "./test/data/courses_invalidEmpty.zip",
         InvalidDatasetFileType: "./test/data/Hi",
@@ -82,6 +83,31 @@ describe("InsightFacade Add/Remove Dataset", function () {
             Log.info(err);
             expect.fail(err, expected, "Should not have rejected");
         });
+    });
+
+    it("Should add a valid rooms dataset", function () {
+        const id: string = "rooms";
+        const expected: string[] = [id];
+        return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Rooms).then((result: string[]) => {
+            expect(result).to.deep.equal(expected);
+        }).catch((err: any) => {
+            // Log.info("err message");
+            Log.info(err);
+            expect.fail(err, expected, "Should not have rejected");
+        });
+    });
+
+    it("Should not add room datasets with no index.htm", async () => {
+        let response: string[];
+        const id: string = "roomsNoIndex";
+        try {
+            response = await insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses);
+        } catch (err) {
+            response = err;
+        } finally {
+            // expect(response).to.deep.equal(InsightError, "Undefined Error");
+            expect(response).to.be.instanceOf(InsightError);
+        }
     });
 
     it("Should add multiple valid datasets", function () {

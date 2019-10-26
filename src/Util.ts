@@ -71,4 +71,53 @@ export default class Log {
         }
     }
 
+    public static findNested(obj: any, key: any, value: any): object[] {
+        // Base case
+        if (obj[key] === value) {
+            return obj;
+        } else {
+            for (let i = 0, len = Object.keys(obj).length; i < len; i++) {
+                let myKey = Object.keys(obj)[i];
+                let objectValue = obj[myKey];
+                if (myKey !== "parentNode" && typeof objectValue === "object") {
+                    let found: any = this.findNested(obj[myKey], key, value);
+                    if (found) {
+                        return found;
+                    }
+                }
+            }
+        }
+    }
+
+    public static findHelper(obj: any, key: string): any[] {
+        let output: any[] = [];
+        for (let i = 0, len = Object.keys(obj).length; i < len; i++) {
+            let myKey = Object.keys(obj)[i];
+            if (obj[i]["nodeName"] === key) {
+                output.push(obj[myKey]);
+            }
+        }
+        return output;
+    }
+
+    public static findNestedAtr(obj: any): any[] {
+        let output = this.findHelper(obj, "tr");
+        let final: any[] = [];
+        for (let i = 0, len = output.length; i < len; i++) {
+            let cn1 = output[i]["childNodes"];
+            let cn1H = this.findHelper(cn1, "td");
+            for (let is = 0, lens = Object.keys(cn1H).length; is < lens; is++) {
+                let temp = cn1H[is]["childNodes"];
+                if (Object.keys(temp).length > 1) {
+                    let a: any = this.findHelper(temp, "a");
+                    if (Object.keys(a).length > 0) {
+                        let hrefTemp: any = Object.values(a)[0];
+                        let href = hrefTemp["attrs"][0]["value"];
+                        final.push(href);
+                    }
+                }
+            }
+        }
+        return final;
+    }
 }
