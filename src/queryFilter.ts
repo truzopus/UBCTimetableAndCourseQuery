@@ -37,10 +37,8 @@ export default class QueryFilter {
             }
         }
         for (let key of applyKeys) {
-            let simpleKey = Object.keys(key)[0];
-            let obj = Object.values(key)[0];
-            let name = Object.keys(obj)[0];
-            let value = Object.values(obj)[0];
+            let simpleKey = Object.keys(key)[0], obj = Object.values(key)[0],
+                value = Object.values(obj)[0], name = Object.keys(obj)[0];
             temp[simpleKey] = this.apply(name, value, array, mkey, skey, simpleKey);
         }
         return temp;
@@ -77,7 +75,13 @@ export default class QueryFilter {
             }
             return Number(total.toFixed(2));
         } else if (name === "COUNT" && (mkey.includes(value) || skey.includes(value))) {
-            return array.length;
+            let unique: any = [];
+            for (let obj of array) {
+                if (!unique.includes(obj[value])) {
+                    unique.push(obj[value]);
+                }
+            }
+            return unique.length;
         } else {
             throw new InsightError();
         }
