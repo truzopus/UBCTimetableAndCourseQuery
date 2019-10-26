@@ -1,6 +1,6 @@
-import {InsightError, ResultTooLargeError} from "./controller/IInsightFacade";
+import {InsightError} from "./controller/IInsightFacade";
 
-export default class QueryLineHelper {
+export default class KeyAndSort {
 
     public static appkey(query: any): string[] {
         let applykey: any = [];

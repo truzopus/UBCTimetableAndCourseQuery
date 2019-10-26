@@ -1,10 +1,12 @@
 import Log from "../Util";
-import PerformQueryHelper from "../performQueryHelper";
+import QueryFilter from "../queryFilter";
 import {IInsightFacade, InsightDataset, InsightDatasetKind,
     InsightError, NotFoundError, ResultTooLargeError} from "./IInsightFacade";
 import * as JSZip from "jszip";
 import Syntax from "../syntaxHelper";
-import QueryLineHelper from "../queryLineHelper";
+import KeyAndSort from "../keyAndSort";
+import GeoPoint from "../geoPoint";
+import * as http from "http";
 
 class MemoDataset {
     public datasetInMemo: { [key: string]: any };
@@ -22,6 +24,7 @@ export default class InsightFacade implements IInsightFacade {
     private dsList: InsightDataset[] = [];
     private dList: string[] = [];
     private memoDataset = new MemoDataset(this.dList, this.dsList, this.dobject);
+
     constructor() {
         Log.trace("InsightFacadeImpl::init()");
     }
@@ -88,6 +91,7 @@ export default class InsightFacade implements IInsightFacade {
     }
 
     public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
+        let geoPointRequester = GeoPoint;
         if (this.invalidInputCheck(id, content, kind) || this.memoDataset.datasetMList.includes(id)) {
             return Promise.reject(new InsightError());
         } else {
@@ -95,7 +99,7 @@ export default class InsightFacade implements IInsightFacade {
             let con = Buffer.from(content, "base64");
             let zip = new JSZip();
             return zip.loadAsync(con, {base64: true}).then(function (body: any) {
-                let p: any[] = [];
+                let p: any[] = [], x: any[] = [];
                 let coursesFolder = body.folder(/courses/);
                 if (coursesFolder.length === 1) {
                     body.folder("courses").forEach(function (relativePath: any, file: any) {
@@ -157,20 +161,20 @@ export default class InsightFacade implements IInsightFacade {
     }
 
     public performQuery(query: any): Promise<any[]> {
-        let that = PerformQueryHelper;
+        let queryFilter = QueryFilter;
         let syntax = Syntax;
-        let that2 = this;
-        let helper = QueryLineHelper;
+        let that = this;
+        let keyAndSort = KeyAndSort;
         return new Promise ((resolve, reject) => {
             let id: string;
             try {
                 syntax.syntaxChecker(query);
-                id = helper.retrieverFunction(query);
+                id = keyAndSort.retrieverFunction(query);
             } catch (error) {
                 return reject (new InsightError());
             }
-            let mkey = helper.mkeyFunc(id);
-            let skey = helper.skeyFunc(id);
+            let mkey = keyAndSort.mkeyFunc(id);
+            let skey = keyAndSort.skeyFunc(id);
             let applykey: string[] = [];
             let groupkey: string[] = [];
             let orderBoolean: boolean;
@@ -178,13 +182,13 @@ export default class InsightFacade implements IInsightFacade {
             let where = Object.keys(query.WHERE);
             try {
                 orderBoolean = syntax.orderChecker(query, Object.keys(query.OPTIONS), query.OPTIONS.COLUMNS, where);
-                result = that2.databaseToResult(id);
+                result = that.databaseToResult(id);
                 if (where.length === 1) {
-                    result = that.filter(query.WHERE, Object.keys(query.WHERE)[0], mkey, skey, result);
+                    result = queryFilter.filter(query.WHERE, Object.keys(query.WHERE)[0], mkey, skey, result);
                 }
                 if (Object.keys(query).length === 3) {
-                    applykey = helper.appkey(query);
-                    result = that.transformationFunction(result, query.TRANSFORMATIONS, mkey, skey);
+                    applykey = keyAndSort.appkey(query);
+                    result = queryFilter.transformationFunction(result, query.TRANSFORMATIONS, mkey, skey);
                     groupkey = query.TRANSFORMATIONS["GROUP"];
                 }
             } catch (error) {
@@ -195,8 +199,8 @@ export default class InsightFacade implements IInsightFacade {
             }
             try {
                 syntax.columnChecker(query, groupkey, mkey, skey, applykey);
-                helper.deleteKeys(result, mkey, skey, groupkey, applykey, query);
-                result = helper.sortFunction(result, query, orderBoolean);
+                keyAndSort.deleteKeys(result, mkey, skey, groupkey, applykey, query);
+                result = keyAndSort.sortFunction(result, query, orderBoolean);
             } catch (error) {
                 return reject(error);
             }

@@ -1,7 +1,7 @@
 import {InsightError} from "./controller/IInsightFacade";
 import {Decimal} from "decimal.js";
 
-export default class PerformQueryHelper {
+export default class QueryFilter {
     public static transformationFunction(result: any[], query: any, mkey: string[], skey: string[]): any[] {
         let groupKeys = query["GROUP"];
         let applyKeys = query["APPLY"];
