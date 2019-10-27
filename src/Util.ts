@@ -99,10 +99,8 @@ export default class Log {
                 let myKey = Object.keys(obj)[i];
                 let objectValue = obj[myKey];
                 let temp = objectValue["attrs"];
-                if ((myKey === "childNodes" || myKey === "div")
-                    && typeof objectValue === "object" ) {
-                    let tests = obj[myKey]["attrs"];
-                        // [0]["value"];
+                if (myKey !== "parentNode" && typeof objectValue === "object" && temp !== undefined) {
+                    // let tests = obj[myKey]["attrs"][0]["value"];
                     let found: any = this.findNestedBuildingInfo(obj[myKey], key, value, attrs);
                     if (found) {
                         return found;
