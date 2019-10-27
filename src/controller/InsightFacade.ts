@@ -52,6 +52,7 @@ export default class InsightFacade implements IInsightFacade {
             let zip = new JSZip();
             let p: any[] = [];
             let con = Buffer.from(content, "base64");
+            let dataFile: any[] = [];
             // eslint-disable-next-line @typescript-eslint/tslint/config
             return zip.loadAsync(con, {base64: true}).then(function (body: any) {
                 if (kind === InsightDatasetKind.Courses) {
@@ -64,7 +65,6 @@ export default class InsightFacade implements IInsightFacade {
                         });
                     }
                     return Promise.all(p).then((result: any) => {
-                        let dataFile: any[] = [];
                         for (let ele of result) {
                             try {
                                 let course = JSON.parse(ele);
@@ -101,10 +101,30 @@ export default class InsightFacade implements IInsightFacade {
                             let indexTemp = Log.findNestedAtr(contentTB);
                             let indexList = [...new Set(indexTemp)];
                             for (let i = 0, len = indexList.length; i < len; i++) {
-                                let indB = indexList[i] + ".FILE";
-                                let building = fs.readFileSync(indB).toString("base64");
+                                let indTemp = indexList[i].split(".");
+                                let building = "rooms" + indTemp[1];
+                                p.push(body.file(building).async("text"));
                             }
-                            return Promise.resolve(indexTree["nodeName"]);
+                            return Promise.all(p).then((result: any) => {
+                                 for (let ele of result) {
+                                     try {
+                                         let room = JSON.parse(JSON.stringify(ele));
+                                         if (room === undefined || room === null) {
+                                             continue;
+                                         }
+                                         let roomSection: any = {};
+                                         let roomParse = parse5.parse(room);
+                                         let testR = Log.findNestedBuildingInfo(roomParse["childNodes"],
+                                             "nodeName", "div", "building-info");
+                                         roomSection["rooms_fullname"] = "name";
+                                         roomSection["rooms_shortname"] = "NaMe".replace(/[^A-Z]/g, "");
+                                     } catch (error) {
+                                         continue;
+                                     }
+                                 }
+                            }).catch((err: any) => {
+                                return Promise.reject(new InsightError("promise all fail room"));
+                            });
                         }).catch(function (error: any) {
                             return Promise.reject(new InsightError("no index.htm"));
                         });

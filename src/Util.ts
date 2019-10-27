@@ -89,6 +89,29 @@ export default class Log {
         }
     }
 
+    public static findNestedBuildingInfo(obj: any, key: any, value: any, attrs: any): object[] {
+        // Base case
+        if (obj[key] === value && obj[key]["attrs"][0]["value"] === attrs) {
+                    return obj;
+        } else {
+            for (let i = 0, len = Object.keys(obj).length; i < len; i++) {
+                let myKey = Object.keys(obj)[i];
+                let objectValue = obj[myKey];
+                let temp = objectValue["attrs"];
+                if (temp !== undefined) {
+                    let tests = obj[myKey]["attrs"][0]["value"];
+                    let t = tests;
+                }
+                if (myKey !== "parentNode" && typeof objectValue === "object" && temp !== undefined) {
+                    let found: any = this.findNestedBuildingInfo(obj[myKey], key, value, attrs);
+                    if (found) {
+                        return found;
+                    }
+                }
+            }
+        }
+    }
+
     public static findHelper(obj: any, key: string): any[] {
         let output: any[] = [];
         for (let i = 0, len = Object.keys(obj).length; i < len; i++) {
