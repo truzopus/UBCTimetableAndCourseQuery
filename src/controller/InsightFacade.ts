@@ -1,6 +1,11 @@
 import Log from "../Util";
-import {IInsightFacade, InsightDataset, InsightDatasetKind, InsightError, NotFoundError} from "./IInsightFacade";
+import QueryFilter from "../queryFilter";
+import {IInsightFacade, InsightDataset, InsightDatasetKind,
+    InsightError, NotFoundError, ResultTooLargeError} from "./IInsightFacade";
 import * as JSZip from "jszip";
+import Syntax from "../syntaxHelper";
+import KeyAndSort from "../keyAndSort";
+import GeoPoint from "../geoPoint";
 import * as http from "http";
 let fs = require("fs");
 let parse5 = require("parse5");
@@ -45,8 +50,9 @@ export default class InsightFacade implements IInsightFacade {
 
     // eslint-disable-next-line @typescript-eslint/tslint/config
     public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-        if (Log.invalidInputCheck(id, content, kind) || this.memoDataset.datasetMList.includes(id)) {
-            return Promise.reject(new InsightError("invalid input parameter"));
+        let geoPointRequester = GeoPoint;
+        if (this.invalidInputCheck(id, content, kind) || this.memoDataset.datasetMList.includes(id)) {
+            return Promise.reject(new InsightError());
         } else {
             let that = this;
             let zip = new JSZip();
@@ -136,7 +142,6 @@ export default class InsightFacade implements IInsightFacade {
                 return Promise.reject(new InsightError("fail to unzip dataset"));
             });
         }
-
     }
 
     public removeDataset(id: string): Promise<string> {
@@ -159,7 +164,60 @@ export default class InsightFacade implements IInsightFacade {
     }
 
     public performQuery(query: any): Promise<any[]> {
-        return Promise.reject(new InsightError("not implemented"));
+        let queryFilter = QueryFilter;
+        let syntax = Syntax;
+        let that = this;
+        let keyAndSort = KeyAndSort;
+        return new Promise ((resolve, reject) => {
+            let id: string;
+            try {
+                syntax.syntaxChecker(query);
+                id = keyAndSort.retrieverFunction(query);
+            } catch (error) {
+                return reject (new InsightError());
+            }
+            let mkey = keyAndSort.mkeyFunc(id);
+            let skey = keyAndSort.skeyFunc(id);
+            let applykey: string[] = [];
+            let groupkey: string[] = [];
+            let orderBoolean: boolean;
+            let result: any = [];
+            let where = Object.keys(query.WHERE);
+            try {
+                orderBoolean = syntax.orderChecker(query, Object.keys(query.OPTIONS), query.OPTIONS.COLUMNS, where);
+                result = that.databaseToResult(id);
+                if (where.length === 1) {
+                    result = queryFilter.filter(query.WHERE, Object.keys(query.WHERE)[0], mkey, skey, result);
+                }
+                if (Object.keys(query).length === 3) {
+                    applykey = keyAndSort.appkey(query);
+                    result = queryFilter.transformationFunction(result, query.TRANSFORMATIONS, mkey, skey);
+                    groupkey = query.TRANSFORMATIONS["GROUP"];
+                }
+            } catch (error) {
+                return reject(new InsightError());
+            }
+            if (result.length > 5000) {
+                throw new ResultTooLargeError();
+            }
+            try {
+                syntax.columnChecker(query, groupkey, mkey, skey, applykey);
+                keyAndSort.deleteKeys(result, mkey, skey, groupkey, applykey, query);
+                result = keyAndSort.sortFunction(result, query, orderBoolean);
+            } catch (error) {
+                return reject(error);
+            }
+            return resolve(result);
+        });
+    }
+
+    public databaseToResult(id: string): any[] {
+        if (this.memoDataset.datasetInMemo[id] !== null || this.memoDataset.datasetInMemo[id] !== undefined) {
+            return JSON.parse(JSON.stringify(this.memoDataset.datasetInMemo[id]));
+        } else {
+            let fs = require("fs");
+            return JSON.parse(fs.readFileSync("./data/" + id + ".json"));
+        }
     }
 
     public listDatasets(): Promise<InsightDataset[]> {
