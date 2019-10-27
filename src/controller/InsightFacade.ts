@@ -1,12 +1,15 @@
 import Log from "../Util";
 import QueryFilter from "../queryFilter";
-import {IInsightFacade, InsightDataset, InsightDatasetKind,
-    InsightError, NotFoundError, ResultTooLargeError} from "./IInsightFacade";
+import {
+    IInsightFacade, InsightDataset, InsightDatasetKind,
+    InsightError, NotFoundError, ResultTooLargeError
+} from "./IInsightFacade";
 import * as JSZip from "jszip";
 import Syntax from "../syntaxHelper";
 import KeyAndSort from "../keyAndSort";
 import GeoPoint from "../geoPoint";
 import * as http from "http";
+
 let fs = require("fs");
 let parse5 = require("parse5");
 
@@ -100,6 +103,7 @@ export default class InsightFacade implements IInsightFacade {
                 if (kind === InsightDatasetKind.Rooms) {
                     let roomFolder = body.folder(/rooms/);
                     if (roomFolder.length >= 1) {
+                        // eslint-disable-next-line @typescript-eslint/tslint/config
                         return body.file("rooms/index.htm").async("text").then(function (data: any) {
                             let indexTree = parse5.parse(data);
                             let test: any = Log.findNested(indexTree["childNodes"], "nodeName", "tbody");
@@ -112,22 +116,48 @@ export default class InsightFacade implements IInsightFacade {
                                 p.push(body.file(building).async("text"));
                             }
                             return Promise.all(p).then((result: any) => {
-                                 for (let ele of result) {
-                                     try {
-                                         let room = JSON.parse(JSON.stringify(ele));
-                                         if (room === undefined || room === null) {
-                                             continue;
-                                         }
-                                         let roomSection: any = {};
-                                         let roomParse = parse5.parse(room);
-                                         let testR = Log.findNestedBuildingInfo(roomParse["childNodes"],
-                                             "nodeName", "div", "building-info");
-                                         roomSection["rooms_fullname"] = "name";
-                                         roomSection["rooms_shortname"] = "NaMe".replace(/[^A-Z]/g, "");
-                                     } catch (error) {
-                                         continue;
-                                     }
-                                 }
+                                for (let ele of result) {
+                                    try {
+                                        let room = JSON.parse(JSON.stringify(ele));
+                                        if (room === undefined || room === null) {
+                                            continue;
+                                        }
+                                        let roomSection: any = {};
+                                        let roomParse = parse5.parse(room);
+                                        let buildingBody = Log.findNested(roomParse["childNodes"], "nodeName", "body");
+                                        let testR = Log.findNestedBuildingInfo(buildingBody,
+                                            "nodeName", "div", "building-info");
+                                        roomSection["rooms_fullname"] = "name";
+                                        roomSection["rooms_shortname"] = roomSection["rooms_fullname"].replace(
+                                            /[^A-Z]/g, "");
+                                        roomSection["rooms_number"] = "110";
+                                        roomSection["rooms_name"] = roomSection["room_shortname"] +
+                                            "_" + roomSection["room_number"];
+                                        roomSection["rooms_address"] = "address";
+                                        roomSection["rooms_seats"] = Number(12);
+                                        roomSection["rooms_type"] = "Small Group";
+                                        roomSection["rooms_furniture"] = "none";
+                                        roomSection["rooms_href"] = "test";
+                                        let geoPoints: any[] = [];
+                                        geoPointRequester.requestGeoPoint(roomSection["room_address"],
+                                            geoPoints).then((point: any) => {
+                                                roomSection["rooms_lat"] = Number(geoPoints[0]);
+                                                roomSection["rooms_lon"] = Number(geoPoints[1]);
+                                            }).catch((error: any) => {
+                                            roomSection["rooms_lat"] = "";
+                                            roomSection["rooms_lon"] = "";
+                                        });
+                                        dataFile.push(roomSection);
+                                    } catch (error) {
+                                        continue;
+                                    }
+                                    if (dataFile.length > 0) {
+                                        that.updateMemory(id, dataFile, that.memoDataset, InsightDatasetKind.Rooms);
+                                        return Promise.resolve(that.memoDataset.datasetMList);
+                                    } else {
+                                        return Promise.reject(new InsightError("(no valid room section) dataset"));
+                                    }
+                                }
                             }).catch((err: any) => {
                                 return Promise.reject(new InsightError("promise all fail room"));
                             });
@@ -168,13 +198,13 @@ export default class InsightFacade implements IInsightFacade {
         let syntax = Syntax;
         let that = this;
         let keyAndSort = KeyAndSort;
-        return new Promise ((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             let id: string;
             try {
                 syntax.syntaxChecker(query);
                 id = keyAndSort.retrieverFunction(query);
             } catch (error) {
-                return reject (new InsightError());
+                return reject(new InsightError());
             }
             let mkey = keyAndSort.mkeyFunc(id);
             let skey = keyAndSort.skeyFunc(id);
