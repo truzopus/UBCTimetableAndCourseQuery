@@ -51,7 +51,7 @@ export default class InsightFacade implements IInsightFacade {
     // eslint-disable-next-line @typescript-eslint/tslint/config
     public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
         let geoPointRequester = GeoPoint;
-        if (this.invalidInputCheck(id, content, kind) || this.memoDataset.datasetMList.includes(id)) {
+        if (Log.invalidInputCheck(id, content, kind) || this.memoDataset.datasetMList.includes(id)) {
             return Promise.reject(new InsightError());
         } else {
             let that = this;
@@ -215,7 +215,6 @@ export default class InsightFacade implements IInsightFacade {
         if (this.memoDataset.datasetInMemo[id] !== null || this.memoDataset.datasetInMemo[id] !== undefined) {
             return JSON.parse(JSON.stringify(this.memoDataset.datasetInMemo[id]));
         } else {
-            let fs = require("fs");
             return JSON.parse(fs.readFileSync("./data/" + id + ".json"));
         }
     }
