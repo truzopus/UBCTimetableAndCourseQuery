@@ -6,7 +6,7 @@ export default class KeyAndSort {
         let applykey: any = [];
         for (let key of query.TRANSFORMATIONS["APPLY"]) {
             let key1 = Object.keys(key)[0];
-            if (applykey.includes(key1) || key1.includes("_")) {
+            if (applykey.includes(key1) || key1.includes("_") || key1 === "" || Object.keys(key).length !== 1) {
                 throw new InsightError();
             } else {
                 applykey.push(key1);
@@ -28,6 +28,9 @@ export default class KeyAndSort {
         if (typeof retriever !== "string") {
             throw new InsightError();
         } else {
+            if (retriever.split("_").length !== 2) {
+                throw new InsightError();
+            }
             return retriever.split("_")[0];
         }
     }

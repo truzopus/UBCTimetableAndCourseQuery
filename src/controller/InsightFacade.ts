@@ -83,7 +83,7 @@ export default class InsightFacade implements IInsightFacade {
     }
 
     private roomPromises(p: any[], dataFile: any[], that: any, id: string): Promise<string[]> {
-        return Promise.all(p).then((result: any) => {
+        return Promise.all(p).then(async (result: any) => {
             for (let ele of result) {
                 try {
                     let room = JSON.parse(JSON.stringify(ele));
@@ -98,20 +98,19 @@ export default class InsightFacade implements IInsightFacade {
                     ExtractHtml.parseRoom(roomInfo, roomSection);
                     let roomFile = ExtractHtml.parseTable(roomInfo);
                     let roomCheck = roomFile[0];
-                    let validGeo: boolean, geoPoint: any;
-                    geoPointRequester.requestGeoPoint(roomSection["rooms_address"]).
-                    then((point: any) => {
-                        if (typeof point === "string") {
-                            validGeo = false;
-                        } else {
-                            roomSection["rooms_lat"] = Number(point[0]);
-                            roomSection["rooms_lon"] = Number(point[1]);
-                            validGeo = true;
-                        }
-                    }).catch((error: any) => {
+                    let validGeo: boolean;
+                    let webReplaced: string = "http://cs310.students.cs.ubc.ca:11316/api/v1/" +
+                        "project_team035/" + roomSection["rooms_address"].
+                        replace(/ /g, "%20");
+                    let geo1 = await geoPointRequester.requestGeoPoint(webReplaced);
+                    if (typeof geo1 === "string") {
                         validGeo = false;
-                    });
-                    if (roomCheck) {
+                    } else {
+                        validGeo = true;
+                        roomSection["rooms_lat"] = geo1[0];
+                        roomSection["rooms_lon"] = geo1[1];
+                    }
+                    if (roomCheck && validGeo) {
                         ExtractHtml.pushDatafile(dataFile, roomFile, roomSection);
                     }
                 } catch (error) {

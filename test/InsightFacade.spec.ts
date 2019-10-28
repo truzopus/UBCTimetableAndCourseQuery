@@ -112,10 +112,10 @@ describe("InsightFacade Add/Remove Dataset", function () {
 
     it("Should add multiple valid datasets", function () {
         const id: string = "courses";
-        const id2: string = "rooms2";
+        const id2: string = "rooms";
         const expected: string[] = [id, id2];
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
-            return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Courses);
+            return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
         }).then((response: string[]) => {
             expect(response).to.deep.equal(expected);
         }).catch((err: any) => {
@@ -399,6 +399,17 @@ describe("InsightFacade Add/Remove Dataset", function () {
         });
     });
 
+    it("Should remove valid dataset", function () {
+        const id: string = "rooms";
+        return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Rooms).then ((result: string[]) => {
+            return insightFacade.removeDataset(id);
+        }).then((response: string) => {
+            expect(response).to.deep.equal(id);
+        }).catch((err: any) => {
+            expect.fail(err, id, "Should not have rejected");
+        });
+    });
+
     it("Should remove valid dataset when there is more than one", function () {
         const id: string = "courses";
         const id2: string = "rooms2";
@@ -562,6 +573,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
 describe("InsightFacade PerformQuery", () => {
     const datasetsToQuery: { [id: string]: any } = {
         courses: {id: "courses", path: "./test/data/courses.zip", kind: InsightDatasetKind.Courses},
+        courses2: {id: "rooms", path: "./test/data/rooms.zip", kind: InsightDatasetKind.Rooms}
     };
     let insightFacade: InsightFacade = new InsightFacade();
     let testQueries: ITestQuery[] = [];

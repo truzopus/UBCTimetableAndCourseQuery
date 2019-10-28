@@ -264,18 +264,19 @@ export default class ExtractHtml {
 
     public static pushDatafile(dataFile: any[], roomFile: any[], roomSection: any): void {
         for (let i = 0, len = roomFile[1][0].length; i < len; i++) {
-            roomSection["rooms_fullname"] = roomSection["rooms_fullname"];
-            roomSection["rooms_address"] = roomSection["rooms_address"];
-            roomSection["rooms_lat"] = roomSection["rooms_lat"];
-            roomSection["rooms_lon"] = roomSection["rooms_lon"];
-            roomSection["rooms_href"] = roomFile[1][0][i];
-            roomSection["rooms_number"] = roomFile[1][1][i];
-            roomSection["rooms_seats"] = roomFile[1][2][i];
-            roomSection["rooms_type"] = roomFile[1][3][i];
-            roomSection["rooms_furniture"] = roomFile[1][4][i];
-            roomSection["rooms_name"] = roomFile[1][5][i];
-            roomSection["rooms_shortname"] = roomFile[1][6][i];
-            dataFile.push(roomSection);
+            let section: any = {};
+            section["rooms_fullname"] = roomSection["rooms_fullname"];
+            section["rooms_address"] = roomSection["rooms_address"];
+            section["rooms_lat"] = roomSection["rooms_lat"];
+            section["rooms_lon"] = roomSection["rooms_lon"];
+            section["rooms_href"] = roomFile[1][0][i];
+            section["rooms_number"] = roomFile[1][1][i];
+            section["rooms_seats"] = roomFile[1][2][i];
+            section["rooms_type"] = roomFile[1][3][i];
+            section["rooms_furniture"] = roomFile[1][4][i];
+            section["rooms_name"] = roomFile[1][5][i];
+            section["rooms_shortname"] = roomFile[1][6][i];
+            dataFile.push(section);
         }
     }
 }
