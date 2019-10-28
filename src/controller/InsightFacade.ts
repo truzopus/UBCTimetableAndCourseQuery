@@ -8,7 +8,6 @@ import * as JSZip from "jszip";
 import Syntax from "../syntaxHelper";
 import KeyAndSort from "../keyAndSort";
 import GeoPoint from "../geoPoint";
-import * as http from "http";
 
 let fs = require("fs");
 let parse5 = require("parse5");
@@ -135,16 +134,24 @@ export default class InsightFacade implements IInsightFacade {
                                         roomSection["rooms_type"] = "Small Group";
                                         roomSection["rooms_furniture"] = "none";
                                         roomSection["rooms_href"] = "test";
-                                        let geoPoints: any[] = [];
-                                        geoPointRequester.requestGeoPoint(roomSection["room_address"],
-                                            geoPoints).then((point: any) => {
-                                            roomSection["rooms_lat"] = Number(geoPoints[0]);
-                                            roomSection["rooms_lon"] = Number(geoPoints[1]);
+                                        let validGeo: boolean, geoPoint: any;
+                                        geoPointRequester.requestGeoPoint(roomSection["room_address"]).
+                                        then((point: any) => {
+                                            if (typeof point === "string") {
+                                                validGeo = false;
+                                            } else {
+                                                roomSection["rooms_lat"] = Number(point[0]);
+                                                roomSection["rooms_lon"] = Number(point[1]);
+                                                validGeo = true;
+                                            }
                                         }).catch((error: any) => {
-                                            roomSection["rooms_lat"] = "";
-                                            roomSection["rooms_lon"] = "";
+                                            validGeo = false;
                                         });
-                                        dataFile.push(roomSection);
+                                        if (validGeo) {
+                                            dataFile.push(roomSection);
+                                        } else {
+                                            // discard all rooms in the building, even the previously pushed ones
+                                        }
                                     } catch (error) {
                                         continue;
                                     }
