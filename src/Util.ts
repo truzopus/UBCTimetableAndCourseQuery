@@ -172,9 +172,50 @@ export default class Log {
         return final;
     }
 
-    public static parseRoom(roominfo: any[]) {
-        let body: object = roominfo[0];
+    public static parseRoom(roominfo: any[], roomSection: any) {
+        let body: any[] = roominfo[0]["childNodes"];
         let table: object = roominfo[1];
+        let fieldContent: any[] = [];
+        for (let i = 0, len = body.length; i < len; i++) {
+            if (body[i]["nodeName"] === "div") {
+             fieldContent = body[i]["childNodes"];
+            }
+        }
+        let fCN: any[] = [];
+        this.parseHelper(fieldContent, fCN, "div");
+        let fCN2: any[] = [];
+        this.checkAttr(fCN, "id", "building-info", fCN2);
+        for (let i = 0, len = fCN[0]["childNodes"].length; i < len; i++) {
+            if (fCN[0]["childNodes"][i]["nodeName"] === "h2") {
+                let span = fCN[0]["childNodes"][i]["childNodes"];
+                roomSection["rooms_fullname"] = span[0]["childNodes"][0]["value"];
+                roomSection["rooms_shortname"] = roomSection["rooms_fullname"].replace(
+                    /[^A-Z]/g, "");
+                let n = 0;
+            }
+        }
+    }
 
+    public static parseHelper(obj: any[], array: any[], key: string) {
+        for (let j = 0, lens = obj.length; j < lens; j++) {
+            let objCN = obj[j]["childNodes"];
+            if (obj[j]["nodeName"] === key && objCN !== undefined) {
+                let objSub = obj[j]["childNodes"];
+                for (let i = 0, len = objSub.length; i < len; i++) {
+                    if (objSub[i]["nodeName"] === key) {
+                        array.push(objSub[i]);
+                    }
+                }
+            }
+        }
+    }
+
+    public static checkAttr(obj: any[], name: string, value: string, array: any[]) {
+        for (let i = 0, len = obj.length; i < len; i++) {
+            let attr = obj[i]["attrs"][0];
+            if (attr["name"] === name && attr["value"] === value) {
+                array.push(obj[i]);
+            }
+        }
     }
 }

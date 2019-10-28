@@ -126,9 +126,7 @@ export default class InsightFacade implements IInsightFacade {
                                         let roomParse = parse5.parse(room);
                                         let buildingBody = Log.findNested(roomParse["childNodes"], "nodeName", "body");
                                         let roomInfo = Log.findNestedBuildingInfo(buildingBody, roomSection);
-                                        roomSection["rooms_fullname"] = Log.parseRoom(roomInfo);
-                                        roomSection["rooms_shortname"] = roomSection["rooms_fullname"].replace(
-                                            /[^A-Z]/g, "");
+                                        Log.parseRoom(roomInfo, roomSection);
                                         roomSection["rooms_number"] = "110";
                                         roomSection["rooms_name"] = roomSection["room_shortname"] +
                                             "_" + roomSection["room_number"];
