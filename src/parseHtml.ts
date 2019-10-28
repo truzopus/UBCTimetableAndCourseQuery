@@ -179,14 +179,7 @@ export default class ExtractHtml {
         return [List.length > 0, List];
     }
 
-    public static parseTableHelper(tr: any[]): any[] {
-        let href: any[] = [];
-        let rNumber: any[] = [];
-        let seats: any[] = [];
-        let type: any[] = [];
-        let furn: any[] = [];
-        let rName: any[] = [];
-        let sName: any[] = [];
+    public static parseTableHelper2(tr: any): any[] {
         let td: any[] = [];
         for (let i = 0, len = tr.length; i < len; i++) {
             if (tr[i]["nodeName"] !== "#text") {
@@ -199,6 +192,18 @@ export default class ExtractHtml {
                 }
             }
         }
+        return td;
+    }
+
+    public static parseTableHelper(tr: any[]): any[] {
+        let href: any[] = [];
+        let rNumber: any[] = [];
+        let seats: any[] = [];
+        let type: any[] = [];
+        let furn: any[] = [];
+        let rName: any[] = [];
+        let sName: any[] = [];
+        let td = this.parseTableHelper2(tr);
         for (let i = 0, len = td.length; i < len; i++) {
             let cap = td[i]["childNodes"];
             if (td[i]["attrs"][0]["value"] === "views-field views-field-field-room-number") {
@@ -220,9 +225,17 @@ export default class ExtractHtml {
             } else if (td[i]["attrs"][0]["value"] === "views-field views-field-field-room-capacity") {
                 seats.push(Number(cap[0]["value"]));
             } else if (td[i]["attrs"][0]["value"] === "views-field views-field-field-room-furniture") {
-                furn.push(String(cap[0]["value"]).replace("\n", ""));
+                if (cap[0]["value"] !== undefined) {
+                    furn.push(String(cap[0]["value"]).replace("\n", ""));
+                } else {
+                    furn.push("");
+                }
             } else if (td[i]["attrs"][0]["value"] === "views-field views-field-field-room-type") {
-               type.push(String(cap[0]["value"]).replace("\n", ""));
+                if (cap[0]["value"] !== undefined) {
+                    type.push(String(cap[0]["value"]).replace("\n", ""));
+                } else {
+                    type.push("");
+                }
             }
         }
         let combine = [href, rNumber, seats, type, furn, rName, sName];
@@ -235,6 +248,32 @@ export default class ExtractHtml {
             if (array[i]["name"] === "href") {
                 return array[i]["value"];
             }
+        }
+    }
+
+    public static parseIndex(data: any): any[] {
+        let parse5 = require("parse5");
+        let indexTree = parse5.parse(data);
+        let test: any = this.findNested(indexTree["childNodes"], "nodeName", "tbody");
+        let contentTB = test["childNodes"];
+        let indexTemp = this.findNestedAtr(contentTB);
+        return [...new Set(indexTemp)];
+    }
+
+    public static pushDatafile(dataFile: any[], roomFile: any[], roomSection: any): void {
+        for (let i = 0, len = roomFile[1][0].length; i < len; i++) {
+            roomSection["rooms_fullname"] = roomSection["rooms_fullname"];
+            roomSection["rooms_address"] = roomSection["rooms_address"];
+            roomSection["rooms_lat"] = roomSection["rooms_lat"];
+            roomSection["rooms_lon"] = roomSection["rooms_lon"];
+            roomSection["rooms_href"] = roomFile[1][0][i];
+            roomSection["rooms_number"] = roomFile[1][1][i];
+            roomSection["rooms_seats"] = roomFile[1][2][i];
+            roomSection["rooms_type"] = roomFile[1][3][i];
+            roomSection["rooms_furniture"] = roomFile[1][4][i];
+            roomSection["rooms_name"] = roomFile[1][5][i];
+            roomSection["rooms_shortname"] = roomFile[1][6][i];
+            dataFile.push(roomSection);
         }
     }
 }

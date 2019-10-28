@@ -9,9 +9,11 @@ import Syntax from "../syntaxHelper";
 import KeyAndSort from "../keyAndSort";
 import GeoPoint from "../geoPoint";
 import ExtractHtml from "../parseHtml";
+import {promises} from "fs";
 
 let fs = require("fs");
 let parse5 = require("parse5");
+let geoPointRequester = GeoPoint;
 
 class MemoDataset {
     public datasetInMemo: { [key: string]: any };
@@ -51,9 +53,81 @@ export default class InsightFacade implements IInsightFacade {
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/tslint/config
+    private coursePromises(p: any[], dataFile: any[], that: any, id: string): Promise<string[]> {
+        return Promise.all(p).then((result: any) => {
+            for (let ele of result) {
+                try {
+                    let course = JSON.parse(ele);
+                    if (course === undefined || !("result" in course) || course === null) {
+                        continue;
+                    }
+                    for (let courseSec of course["result"]) {
+                        if (Log.sectionCheck(courseSec)) {
+                            let courseSection: any = {};
+                            Log.datasetKeyConvert(courseSection, courseSec);
+                            dataFile.push(courseSection);
+                        }
+                    }
+                } catch (error) { // ignore
+                }
+            }
+            if (dataFile.length > 0) {
+                that.updateMemory(id, dataFile, that.memoDataset, InsightDatasetKind.Courses);
+                return Promise.resolve(that.memoDataset.datasetMList);
+            } else {
+                return Promise.reject(new InsightError("invalid (no valid course section) dataset"));
+            }
+        }).catch((error: any) => {
+            return Promise.reject(new InsightError("promise.all failed"));
+        });
+    }
+
+    private roomPromises(p: any[], dataFile: any[], that: any, id: string): Promise<string[]> {
+        return Promise.all(p).then((result: any) => {
+            for (let ele of result) {
+                try {
+                    let room = JSON.parse(JSON.stringify(ele));
+                    if (room === undefined || room === null) {
+                        continue;
+                    }
+                    let roomSection: any = {};
+                    let roomParse = parse5.parse(room);
+                    let buildingBody = ExtractHtml.findNested(roomParse["childNodes"],
+                        "nodeName", "body");
+                    let roomInfo = ExtractHtml.findNestedBuildingInfo(buildingBody, roomSection);
+                    ExtractHtml.parseRoom(roomInfo, roomSection);
+                    let roomFile = ExtractHtml.parseTable(roomInfo);
+                    let roomCheck = roomFile[0];
+                    let validGeo: boolean, geoPoint: any;
+                    geoPointRequester.requestGeoPoint(roomSection["rooms_address"]).
+                    then((point: any) => {
+                        if (typeof point === "string") {
+                            validGeo = false;
+                        } else {
+                            roomSection["rooms_lat"] = Number(point[0]);
+                            roomSection["rooms_lon"] = Number(point[1]);
+                            validGeo = true;
+                        }
+                    }).catch((error: any) => {
+                        validGeo = false;
+                    });
+                    if (roomCheck) {
+                        ExtractHtml.pushDatafile(dataFile, roomFile, roomSection);
+                    }
+                } catch (error) {
+                    continue;
+                }
+            }
+            if (dataFile.length > 0) {
+                that.updateMemory(id, dataFile, that.memoDataset, InsightDatasetKind.Rooms);
+                return Promise.resolve(that.memoDataset.datasetMList);
+            }
+        }).catch((err: any) => {
+            return Promise.reject(new InsightError("promise all fail room"));
+        });
+    }
+
     public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-        let geoPointRequester = GeoPoint;
         if (Log.invalidInputCheck(id, content, kind) || this.memoDataset.datasetMList.includes(id)) {
             return Promise.reject(new InsightError());
         } else {
@@ -62,7 +136,6 @@ export default class InsightFacade implements IInsightFacade {
             let p: any[] = [];
             let con = Buffer.from(content, "base64");
             let dataFile: any[] = [];
-            // eslint-disable-next-line @typescript-eslint/tslint/config
             return zip.loadAsync(con, {base64: true}).then(function (body: any) {
                 if (kind === InsightDatasetKind.Courses) {
                     let coursesFolder = body.folder(/courses/);
@@ -73,106 +146,19 @@ export default class InsightFacade implements IInsightFacade {
                             }
                         });
                     }
-                    return Promise.all(p).then((result: any) => {
-                        for (let ele of result) {
-                            try {
-                                let course = JSON.parse(ele);
-                                if (course === undefined || !("result" in course) || course === null) {
-                                    continue;
-                                }
-                                for (let courseSec of course["result"]) {
-                                    if (Log.sectionCheck(courseSec)) {
-                                        let courseSection: any = {};
-                                        Log.datasetKeyConvert(courseSection, courseSec);
-                                        dataFile.push(courseSection);
-                                    }
-                                }
-                            } catch (error) { // ignore
-                            }
-                        }
-                        if (dataFile.length > 0) {
-                            that.updateMemory(id, dataFile, that.memoDataset, InsightDatasetKind.Courses);
-                            return Promise.resolve(that.memoDataset.datasetMList);
-                        } else {
-                            return Promise.reject(new InsightError("invalid (no valid course section) dataset"));
-                        }
-                    }).catch((error: any) => {
-                        return Promise.reject(new InsightError("promise.all failed"));
-                    });
+                    return that.coursePromises(p, dataFile, that, id);
                 }
                 if (kind === InsightDatasetKind.Rooms) {
                     let roomFolder = body.folder(/rooms/);
                     if (roomFolder.length >= 1) {
-                        // eslint-disable-next-line @typescript-eslint/tslint/config
                         return body.file("rooms/index.htm").async("text").then(function (data: any) {
-                            let indexTree = parse5.parse(data);
-                            let test: any = ExtractHtml.findNested(indexTree["childNodes"], "nodeName", "tbody");
-                            let contentTB = test["childNodes"];
-                            let indexTemp = ExtractHtml.findNestedAtr(contentTB);
-                            let indexList = [...new Set(indexTemp)];
+                            let indexList = ExtractHtml.parseIndex(data);
                             for (let i = 0, len = indexList.length; i < len; i++) {
                                 let indTemp = indexList[i].split(".");
                                 let building = "rooms" + indTemp[1];
                                 p.push(body.file(building).async("text"));
                             }
-                            // eslint-disable-next-line @typescript-eslint/tslint/config
-                            return Promise.all(p).then((result: any) => {
-                                for (let ele of result) {
-                                    try {
-                                        let room = JSON.parse(JSON.stringify(ele));
-                                        if (room === undefined || room === null) {
-                                            continue;
-                                        }
-                                        let roomSection: any = {};
-                                        let roomParse = parse5.parse(room);
-                                        let buildingBody = ExtractHtml.findNested(roomParse["childNodes"],
-                                            "nodeName", "body");
-                                        let roomInfo = ExtractHtml.findNestedBuildingInfo(buildingBody, roomSection);
-                                        ExtractHtml.parseRoom(roomInfo, roomSection);
-                                        let roomFile = ExtractHtml.parseTable(roomInfo);
-                                        let roomCheck = roomFile[0];
-                                        let validGeo: boolean, geoPoint: any;
-                                        geoPointRequester.requestGeoPoint(roomSection["rooms_address"]).
-                                        then((point: any) => {
-                                            if (typeof point === "string") {
-                                                validGeo = false;
-                                            } else {
-                                                roomSection["rooms_lat"] = Number(point[0]);
-                                                roomSection["rooms_lon"] = Number(point[1]);
-                                                validGeo = true;
-                                            }
-                                        }).catch((error: any) => {
-                                            validGeo = false;
-                                        });
-                                        if (validGeo && roomCheck) {
-                                            for (let i = 0, len = roomFile[1].length; i < len; i++) {
-                                                roomSection["rooms_fullname"] = roomSection["rooms_fullname"];
-                                                roomSection["rooms_address"] = roomSection["rooms_address"];
-                                                roomSection["rooms_lat"] = roomSection["rooms_lat"];
-                                                roomSection["rooms_lon"] = roomSection["rooms_lon"];
-                                                roomSection["rooms_href"] = roomFile[1][0][i];
-                                                roomSection["rooms_number"] = roomFile[1][1][i];
-                                                roomSection["rooms_seats"] = roomFile[1][2][i];
-                                                roomSection["rooms_type"] = roomFile[1][3][i];
-                                                roomSection["rooms_furniture"] = roomFile[1][4][i];
-                                                roomSection["rooms_name"] = roomFile[1][5][i];
-                                                roomSection["rooms_shortname"] = roomFile[1][6][i];
-                                                dataFile.push(roomSection);
-                                            }
-                                        }
-                                    } catch (error) {
-                                        continue;
-                                    }
-                                }
-                                if (dataFile.length > 0) {
-                                    that.updateMemory(id, dataFile, that.memoDataset, InsightDatasetKind.Rooms);
-                                    return Promise.resolve(that.memoDataset.datasetMList);
-                                } else {
-                                    return Promise.reject(new InsightError("(no valid room section) dataset"));
-                                }
-                            }).catch((err: any) => {
-                                return Promise.reject(new InsightError("promise all fail room"));
-                            });
+                            return that.roomPromises(p, dataFile, that, id);
                         }).catch(function (error: any) {
                             return Promise.reject(new InsightError("no index.htm"));
                         });
