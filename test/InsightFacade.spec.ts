@@ -399,7 +399,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
         });
     });
 
-    it("Should remove valid dataset", function () {
+    it("Should remove valid dataset2", function () {
         const id: string = "rooms";
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Rooms).then ((result: string[]) => {
             return insightFacade.removeDataset(id);
@@ -412,7 +412,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
 
     it("Should remove valid dataset when there is more than one", function () {
         const id: string = "courses";
-        const id2: string = "rooms2";
+        const id2: string = "rooms";
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then ((result: string[]) => {
             return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
         }).then((response: string[]) => {
