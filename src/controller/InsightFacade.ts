@@ -9,7 +9,6 @@ import Syntax from "../syntaxHelper";
 import KeyAndSort from "../keyAndSort";
 import GeoPoint from "../geoPoint";
 import ExtractHtml from "../parseHtml";
-import {promises} from "fs";
 
 let fs = require("fs");
 let parse5 = require("parse5");
