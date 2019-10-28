@@ -89,25 +89,55 @@ export default class Log {
         }
     }
 
-    public static findNestedBuildingInfo(obj: any, key: any, value: any, attrs: any): object[] {
-        // Base case
-        if (obj[key] === value && obj[key]["attrs"][0]["value"] === attrs) {
-            let test = obj[key]["attrs"][0]["value"];
-            return obj;
-        } else {
-            for (let i = 0, len = Object.keys(obj).length; i < len; i++) {
-                let myKey = Object.keys(obj)[i];
-                let objectValue = obj[myKey];
-                let temp = objectValue["attrs"];
-                if (myKey !== "parentNode" && typeof objectValue === "object" && temp !== undefined) {
-                    // let tests = obj[myKey]["attrs"][0]["value"];
-                    let found: any = this.findNestedBuildingInfo(obj[myKey], key, value, attrs);
-                    if (found) {
-                        return found;
+    public static findNestedBuildingInfo(obj: any, roomSection: any[]): any[] {
+        let div = this.findHelper(obj["childNodes"], "div");
+        let divList: any[] = [];
+        for (let i = 0, len = div.length; i < len; i++) {
+            divList.push(div[i]["childNodes"]);
+        }
+        let divSubList: any[] = [];
+        for (let j = 0, lens = divList.length; j < lens; j++) {
+            let temp = this.findHelper(divList[j], "div");
+            if (temp.length > 0) {
+                for (let k = 0, l = temp.length; k < l; k++) {
+                    divSubList.push(temp[k]);
+                }
+            }
+        }
+        let final: any[] = [];
+        for (let i = 0, len = divSubList.length; i < len; i++) {
+            let attrN = divSubList[i]["attrs"];
+            for (let j = 0, lens = attrN.length; j < lens; j++) {
+                let myKey = attrN[j]["name"];
+                let myValue = attrN[j]["value"];
+                if (myKey === "id" && myValue === "main") {
+                    final.push(divSubList[i]);
+                }
+            }
+        }
+        let sect: any = this.findNested(final[0], "nodeName", "section");
+        let sectDivCN: any[] = [];
+        for (let i = 0, len = Object.keys(sect["childNodes"]).length; i < len; i++) {
+            if (sect["childNodes"][i]["nodeName"] === "div") {
+                let child = sect["childNodes"][i]["childNodes"];
+                for (let j = 0, lens = child.length; j < lens; j++) {
+                    if (child[j]["nodeName"] === "div") {
+                        sectDivCN.push(child[j]);
+                        let n = 0;
                     }
                 }
             }
         }
+        let body: any[] = [];
+        for (let i = 0, len = sectDivCN.length; i < len; i++) {
+            let attrsCN = sectDivCN[i]["attrs"];
+            if ( attrsCN[0]["name"] === "class" && attrsCN[0]["value"] === "view-content") {
+                body.push(sectDivCN[i]);
+            } else if (attrsCN[0]["name"] === "class" && attrsCN[0]["value"] === "view-footer") {
+                body.push(sectDivCN[i]);
+            }
+        }
+        return body;
     }
 
     public static findHelper(obj: any, key: string): any[] {
@@ -140,5 +170,11 @@ export default class Log {
             }
         }
         return final;
+    }
+
+    public static parseRoom(roominfo: any[]) {
+        let body: object = roominfo[0];
+        let table: object = roominfo[1];
+
     }
 }

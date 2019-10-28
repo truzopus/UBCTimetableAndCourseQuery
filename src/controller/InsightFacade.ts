@@ -125,9 +125,8 @@ export default class InsightFacade implements IInsightFacade {
                                         let roomSection: any = {};
                                         let roomParse = parse5.parse(room);
                                         let buildingBody = Log.findNested(roomParse["childNodes"], "nodeName", "body");
-                                        let testR = Log.findNestedBuildingInfo(buildingBody,
-                                            "nodeName", "div", "building-info");
-                                        roomSection["rooms_fullname"] = "name";
+                                        let roomInfo = Log.findNestedBuildingInfo(buildingBody, roomSection);
+                                        roomSection["rooms_fullname"] = Log.parseRoom(roomInfo);
                                         roomSection["rooms_shortname"] = roomSection["rooms_fullname"].replace(
                                             /[^A-Z]/g, "");
                                         roomSection["rooms_number"] = "110";
@@ -141,9 +140,9 @@ export default class InsightFacade implements IInsightFacade {
                                         let geoPoints: any[] = [];
                                         geoPointRequester.requestGeoPoint(roomSection["room_address"],
                                             geoPoints).then((point: any) => {
-                                                roomSection["rooms_lat"] = Number(geoPoints[0]);
-                                                roomSection["rooms_lon"] = Number(geoPoints[1]);
-                                            }).catch((error: any) => {
+                                            roomSection["rooms_lat"] = Number(geoPoints[0]);
+                                            roomSection["rooms_lon"] = Number(geoPoints[1]);
+                                        }).catch((error: any) => {
                                             roomSection["rooms_lat"] = "";
                                             roomSection["rooms_lon"] = "";
                                         });
@@ -151,12 +150,12 @@ export default class InsightFacade implements IInsightFacade {
                                     } catch (error) {
                                         continue;
                                     }
-                                    if (dataFile.length > 0) {
-                                        that.updateMemory(id, dataFile, that.memoDataset, InsightDatasetKind.Rooms);
-                                        return Promise.resolve(that.memoDataset.datasetMList);
-                                    } else {
-                                        return Promise.reject(new InsightError("(no valid room section) dataset"));
-                                    }
+                                }
+                                if (dataFile.length > 0) {
+                                    that.updateMemory(id, dataFile, that.memoDataset, InsightDatasetKind.Rooms);
+                                    return Promise.resolve(that.memoDataset.datasetMList);
+                                } else {
+                                    return Promise.reject(new InsightError("(no valid room section) dataset"));
                                 }
                             }).catch((err: any) => {
                                 return Promise.reject(new InsightError("promise all fail room"));
