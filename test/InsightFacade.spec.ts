@@ -101,7 +101,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
         const id: string = "courses";
         const id2: string = "rooms";
         try {
-            await insightFacade.addDataset(id, datasets[id2], InsightDatasetKind.Rooms);
+            await insightFacade.addDataset(id, datasets[id2], InsightDatasetKind.Courses);
             response = await insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses);
         } catch (err) {
             response = err;
@@ -205,7 +205,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
         let response: string[];
         const id: string = "under_scoreValid";
         try {
-            response = await insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Rooms);
+            response = await insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses);
         } catch (err) {
             response = err;
         } finally {

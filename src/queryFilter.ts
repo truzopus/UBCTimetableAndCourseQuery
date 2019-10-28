@@ -39,6 +39,9 @@ export default class QueryFilter {
         for (let key of applyKeys) {
             let simpleKey = Object.keys(key)[0], obj = Object.values(key)[0],
                 value = Object.values(obj)[0], name = Object.keys(obj)[0];
+            if (Object.keys(key).length !== 1 || Object.keys(obj).length !== 1) {
+                throw new InsightError();
+            }
             temp[simpleKey] = this.apply(name, value, array, mkey, skey, simpleKey);
         }
         return temp;

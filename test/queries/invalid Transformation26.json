@@ -3,14 +3,18 @@
     "query": {
         "WHERE": {
             "GT": {
-                "courses_avg": 70
+                "courses_avg": 95
             }
         },
         "OPTIONS": {
             "COLUMNS": [
                 "courses_avg",
                 "overallAvg"
-            ]
+            ],
+            "ORDER": {
+                "dir": "DOWN",
+                "keys": []
+            }
         },
         "TRANSFORMATIONS": {
             "GROUP": [
@@ -25,6 +29,6 @@
             ]
         }
     },
-    "isQueryValid": true,
-    "result": []
+    "isQueryValid": false,
+    "result": "InsightError"
 }
