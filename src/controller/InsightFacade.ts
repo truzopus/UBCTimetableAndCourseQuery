@@ -8,6 +8,7 @@ import * as JSZip from "jszip";
 import Syntax from "../syntaxHelper";
 import KeyAndSort from "../keyAndSort";
 import GeoPoint from "../geoPoint";
+import ExtractHtml from "../parseHtml";
 
 let fs = require("fs");
 let parse5 = require("parse5");
@@ -105,15 +106,16 @@ export default class InsightFacade implements IInsightFacade {
                         // eslint-disable-next-line @typescript-eslint/tslint/config
                         return body.file("rooms/index.htm").async("text").then(function (data: any) {
                             let indexTree = parse5.parse(data);
-                            let test: any = Log.findNested(indexTree["childNodes"], "nodeName", "tbody");
+                            let test: any = ExtractHtml.findNested(indexTree["childNodes"], "nodeName", "tbody");
                             let contentTB = test["childNodes"];
-                            let indexTemp = Log.findNestedAtr(contentTB);
+                            let indexTemp = ExtractHtml.findNestedAtr(contentTB);
                             let indexList = [...new Set(indexTemp)];
                             for (let i = 0, len = indexList.length; i < len; i++) {
                                 let indTemp = indexList[i].split(".");
                                 let building = "rooms" + indTemp[1];
                                 p.push(body.file(building).async("text"));
                             }
+                            // eslint-disable-next-line @typescript-eslint/tslint/config
                             return Promise.all(p).then((result: any) => {
                                 for (let ele of result) {
                                     try {
@@ -123,19 +125,14 @@ export default class InsightFacade implements IInsightFacade {
                                         }
                                         let roomSection: any = {};
                                         let roomParse = parse5.parse(room);
-                                        let buildingBody = Log.findNested(roomParse["childNodes"], "nodeName", "body");
-                                        let roomInfo = Log.findNestedBuildingInfo(buildingBody, roomSection);
-                                        Log.parseRoom(roomInfo, roomSection);
-                                        roomSection["rooms_number"] = "110";
-                                        roomSection["rooms_name"] = roomSection["room_shortname"] +
-                                            "_" + roomSection["room_number"];
-                                        roomSection["rooms_address"] = "address";
-                                        roomSection["rooms_seats"] = Number(12);
-                                        roomSection["rooms_type"] = "Small Group";
-                                        roomSection["rooms_furniture"] = "none";
-                                        roomSection["rooms_href"] = "test";
+                                        let buildingBody = ExtractHtml.findNested(roomParse["childNodes"],
+                                            "nodeName", "body");
+                                        let roomInfo = ExtractHtml.findNestedBuildingInfo(buildingBody, roomSection);
+                                        ExtractHtml.parseRoom(roomInfo, roomSection);
+                                        let roomFile = ExtractHtml.parseTable(roomInfo);
+                                        let roomCheck = roomFile[0];
                                         let validGeo: boolean, geoPoint: any;
-                                        geoPointRequester.requestGeoPoint(roomSection["room_address"]).
+                                        geoPointRequester.requestGeoPoint(roomSection["rooms_address"]).
                                         then((point: any) => {
                                             if (typeof point === "string") {
                                                 validGeo = false;
@@ -147,10 +144,21 @@ export default class InsightFacade implements IInsightFacade {
                                         }).catch((error: any) => {
                                             validGeo = false;
                                         });
-                                        if (validGeo) {
-                                            dataFile.push(roomSection);
-                                        } else {
-                                            // discard all rooms in the building, even the previously pushed ones
+                                        if (validGeo && roomCheck) {
+                                            for (let i = 0, len = roomFile[1].length; i < len; i++) {
+                                                roomSection["rooms_fullname"] = roomSection["rooms_fullname"];
+                                                roomSection["rooms_address"] = roomSection["rooms_address"];
+                                                roomSection["rooms_lat"] = roomSection["rooms_lat"];
+                                                roomSection["rooms_lon"] = roomSection["rooms_lon"];
+                                                roomSection["rooms_href"] = roomFile[1][0][i];
+                                                roomSection["rooms_number"] = roomFile[1][1][i];
+                                                roomSection["rooms_seats"] = roomFile[1][2][i];
+                                                roomSection["rooms_type"] = roomFile[1][3][i];
+                                                roomSection["rooms_furniture"] = roomFile[1][4][i];
+                                                roomSection["rooms_name"] = roomFile[1][5][i];
+                                                roomSection["rooms_shortname"] = roomFile[1][6][i];
+                                                dataFile.push(roomSection);
+                                            }
                                         }
                                     } catch (error) {
                                         continue;
