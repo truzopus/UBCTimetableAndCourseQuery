@@ -20,7 +20,9 @@ describe("InsightFacade Add/Remove Dataset", function () {
     // automatically be loaded in the 'before' hook.
     const datasetsToLoad: { [id: string]: string } = {
         courses: "./test/data/courses.zip",
+        rooms2: "./test/data/rooms2.zip",
         rooms: "./test/data/rooms.zip",
+        roomsNoIndex: "./test/data/roomsNoIndex.zip",
         under_scoreValid: "./test/data/courses.zip",
         InvalidDatasetEmpty: "./test/data/courses_invalidEmpty.zip",
         InvalidDatasetFileType: "./test/data/Hi",
@@ -83,15 +85,41 @@ describe("InsightFacade Add/Remove Dataset", function () {
         });
     });
 
+    it("Should add a valid rooms dataset", function () {
+        const id: string = "rooms";
+        const expected: string[] = [id];
+        return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Rooms).then((result: string[]) => {
+            expect(result).to.deep.equal(expected);
+        }).catch((err: any) => {
+            // Log.info("err message");
+            Log.info(err);
+            expect.fail(err, expected, "Should not have rejected");
+        });
+    });
+
+    it("Should not add room datasets with no index.htm", async () => {
+        let response: string[];
+        const id: string = "roomsNoIndex";
+        try {
+            response = await insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses);
+        } catch (err) {
+            response = err;
+        } finally {
+            // expect(response).to.deep.equal(InsightError, "Undefined Error");
+            expect(response).to.be.instanceOf(InsightError);
+        }
+    });
+
     it("Should add multiple valid datasets", function () {
         const id: string = "courses";
-        const id2: string = "rooms";
+        const id2: string = "rooms2";
         const expected: string[] = [id, id2];
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
-            return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
+            return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Courses);
         }).then((response: string[]) => {
             expect(response).to.deep.equal(expected);
         }).catch((err: any) => {
+            Log.error(err);
             expect.fail(err, expected, "Should not have rejected");
         });
     });
@@ -99,9 +127,9 @@ describe("InsightFacade Add/Remove Dataset", function () {
     it("Should not add datasets with same id", async () => {
         let response: string[];
         const id: string = "courses";
-        const id2: string = "rooms";
+        const id2: string = "rooms2";
         try {
-            await insightFacade.addDataset(id, datasets[id2], InsightDatasetKind.Rooms);
+            await insightFacade.addDataset(id, datasets[id2], InsightDatasetKind.Courses);
             response = await insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses);
         } catch (err) {
             response = err;
@@ -205,7 +233,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
         let response: string[];
         const id: string = "under_scoreValid";
         try {
-            response = await insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Rooms);
+            response = await insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses);
         } catch (err) {
             response = err;
         } finally {
@@ -373,7 +401,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
 
     it("Should remove valid dataset when there is more than one", function () {
         const id: string = "courses";
-        const id2: string = "rooms";
+        const id2: string = "rooms2";
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then ((result: string[]) => {
             return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
         }).then((response: string[]) => {
@@ -401,7 +429,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
     it("Remove wrong dataset", async () => {
         let response: string;
         const id: string = "courses";
-        const id2: string = "rooms";
+        const id2: string = "rooms2";
         try {
             await insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
             response = await insightFacade.removeDataset(id);
@@ -510,9 +538,9 @@ describe("InsightFacade Add/Remove Dataset", function () {
 
     it("List dataset with multiple courses", function () {
         const id: string = "courses";
-        const id2: string = "rooms";
+        const id2: string = "rooms2";
         const expected: InsightDataset[] = [{id: "courses", kind: InsightDatasetKind.Courses, numRows: 64612}
-        , {id: "rooms", kind: InsightDatasetKind.Rooms, numRows: 64612}];
+        , {id: "rooms2", kind: InsightDatasetKind.Rooms, numRows: 64612}];
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then ((result: string[]) => {
             return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
         }).then((response: string[]) => {
