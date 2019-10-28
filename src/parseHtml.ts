@@ -226,13 +226,15 @@ export default class ExtractHtml {
                 seats.push(Number(cap[0]["value"]));
             } else if (td[i]["attrs"][0]["value"] === "views-field views-field-field-room-furniture") {
                 if (cap[0]["value"] !== undefined) {
-                    furn.push(String(cap[0]["value"]).replace("\n", ""));
+                    let temp = String(cap[0]["value"]).replace("\n", "");
+                    furn.push(temp.trim());
                 } else {
                     furn.push("");
                 }
             } else if (td[i]["attrs"][0]["value"] === "views-field views-field-field-room-type") {
                 if (cap[0]["value"] !== undefined) {
-                    type.push(String(cap[0]["value"]).replace("\n", ""));
+                    let temp = String(cap[0]["value"]).replace("\n", "");
+                    type.push(temp.trim());
                 } else {
                     type.push("");
                 }
