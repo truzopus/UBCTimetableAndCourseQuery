@@ -15,8 +15,11 @@
                 "courses_dept",
                 "courses_title"
             ],
-            "ORDER": "courses_dept"
+            "ORDER": {
+                "dir": "UP",
+                "keys": ["courses_dept", "courses_title"]
+            }
         }
     },
     "isQueryValid": true,
-    "result":[{"courses_dept":"chem","courses_title":"princpls chem i"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"thm kin org chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"thm kin org chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"strctr bond chem"}]}
+    "result":[{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"phys & org chem"},{"courses_dept":"chem","courses_title":"princpls chem i"},{"courses_dept":"chem","courses_title":"strctr bond chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"structural chem"},{"courses_dept":"chem","courses_title":"thm kin org chem"},{"courses_dept":"chem","courses_title":"thm kin org chem"}]}

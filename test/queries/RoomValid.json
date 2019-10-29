@@ -1,0 +1,31 @@
+{
+    "title": "Valid Query for Rooms",
+    "query": {
+        "WHERE": {
+            "GT": {
+                "rooms_seats": 300
+            }
+        },
+        "OPTIONS": {
+            "COLUMNS": [
+                "max",
+                "rooms_type"
+            ],
+            "ORDER": "max"
+        },
+        "TRANSFORMATIONS": {
+            "GROUP": [
+                "rooms_type"
+            ],
+            "APPLY": [
+                {
+                    "max": {
+                        "MAX": "rooms_seats"
+                    }
+                }
+            ]
+        }
+    },
+    "isQueryValid": true,
+    "result":[{"max":442,"rooms_type":"Open Design General Purpose"},{"max":503,"rooms_type":"Tiered Large Group"}]}
+

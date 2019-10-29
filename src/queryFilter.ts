@@ -173,7 +173,7 @@ export default class QueryFilter {
         let temp = [];
         for (let subKey of subArray) {
             let value = query[key][subKey];
-            if (!mkey.includes(subKey) || isNaN(value)) {
+            if (!mkey.includes(subKey) || typeof value !== "number") {
                 throw new InsightError();
             }
             temp = this.filterFunction(result, subKey, value, key);

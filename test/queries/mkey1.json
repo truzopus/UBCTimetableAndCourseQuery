@@ -11,10 +11,11 @@
                 "courses_fail",
                 "courses_title"
             ],
-            "ORDER": "courses_title"
+            "ORDER": {
+                "dir": "DOWN",
+                "keys": ["courses_title", "courses_fail"]
+            }
         }
     },
     "isQueryValid": true,
-    "result": [
-        {"courses_fail":172,"courses_title":"bio cog psych"},{"courses_fail":85,"courses_title":"catastroph earth"},{"courses_fail":62,"courses_title":"catastroph earth"},{"courses_fail":135,"courses_title":"dev soc cli psy"},{"courses_fail":144,"courses_title":"dev soc cli psy"},{"courses_fail":119,"courses_title":"princpl macrecon"},{"courses_fail":142,"courses_title":"princpl macrecon"},{"courses_fail":145,"courses_title":"princpl macrecon"},{"courses_fail":166,"courses_title":"princpl macrecon"},{"courses_fail":79,"courses_title":"prncpls micrecon"},{"courses_fail":132,"courses_title":"prncpls micrecon"},{"courses_fail":221,"courses_title":"prncpls micrecon"},{"courses_fail":135,"courses_title":"prncpls micrecon"},{"courses_fail":172,"courses_title":"prncpls micrecon"},{"courses_fail":145,"courses_title":"prncpls micrecon"},{"courses_fail":126,"courses_title":"prncpls micrecon"},{"courses_fail":149,"courses_title":"prncpls micrecon"},{"courses_fail":52,"courses_title":"strat univ writ"},{"courses_fail":59,"courses_title":"strat univ writ"},{"courses_fail":69,"courses_title":"strat univ writ"},{"courses_fail":57,"courses_title":"strat univ writ"},{"courses_fail":79,"courses_title":"strat univ writ"},{"courses_fail":63,"courses_title":"strat univ writ"},{"courses_fail":65,"courses_title":"univrsty writing"},{"courses_fail":45,"courses_title":"univrsty writing"}]
-}
+    "result":[{"courses_fail":65,"courses_title":"univrsty writing"},{"courses_fail":45,"courses_title":"univrsty writing"},{"courses_fail":79,"courses_title":"strat univ writ"},{"courses_fail":69,"courses_title":"strat univ writ"},{"courses_fail":63,"courses_title":"strat univ writ"},{"courses_fail":59,"courses_title":"strat univ writ"},{"courses_fail":57,"courses_title":"strat univ writ"},{"courses_fail":52,"courses_title":"strat univ writ"},{"courses_fail":221,"courses_title":"prncpls micrecon"},{"courses_fail":172,"courses_title":"prncpls micrecon"},{"courses_fail":149,"courses_title":"prncpls micrecon"},{"courses_fail":145,"courses_title":"prncpls micrecon"},{"courses_fail":135,"courses_title":"prncpls micrecon"},{"courses_fail":132,"courses_title":"prncpls micrecon"},{"courses_fail":126,"courses_title":"prncpls micrecon"},{"courses_fail":79,"courses_title":"prncpls micrecon"},{"courses_fail":166,"courses_title":"princpl macrecon"},{"courses_fail":145,"courses_title":"princpl macrecon"},{"courses_fail":142,"courses_title":"princpl macrecon"},{"courses_fail":119,"courses_title":"princpl macrecon"},{"courses_fail":144,"courses_title":"dev soc cli psy"},{"courses_fail":135,"courses_title":"dev soc cli psy"},{"courses_fail":85,"courses_title":"catastroph earth"},{"courses_fail":62,"courses_title":"catastroph earth"},{"courses_fail":172,"courses_title":"bio cog psych"}]}

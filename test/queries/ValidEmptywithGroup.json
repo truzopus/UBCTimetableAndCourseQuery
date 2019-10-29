@@ -1,0 +1,20 @@
+{
+    "title": "not result Too large, but empty apply",
+    "query": {
+        "WHERE": {},
+        "OPTIONS": {
+            "COLUMNS": [
+                "courses_avg"
+            ]
+        },
+        "TRANSFORMATIONS": {
+            "GROUP": [
+                "courses_avg"
+            ],
+            "APPLY": [
+            ]
+        }
+    },
+    "isQueryValid": false,
+    "result": "InsightError"
+}

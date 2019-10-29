@@ -3,7 +3,7 @@
     "query": {
         "WHERE": {
             "GT": {
-                "courses_avg": 98
+                "courses_avg": 70
             }
         },
         "OPTIONS": {

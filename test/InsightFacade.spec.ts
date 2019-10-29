@@ -292,17 +292,6 @@ describe("InsightFacade Add/Remove Dataset", function () {
         });
     });
 
-    it("Valid and wrong file type", async () => {
-        const id: string = "InvalidAndValid2";
-        const expected: string[] = [id];
-        return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
-            expect(result).to.deep.equal(expected);
-        }).catch((err: any) => {
-            Log.error(err);
-            expect.fail(err, expected, "Should not have rejected");
-        });
-    });
-
     it("Empty Course", async () => {
         let response: string[];
         const id: string = "EmptyCourse";
@@ -327,39 +316,6 @@ describe("InsightFacade Add/Remove Dataset", function () {
             // expect(response).to.deep.equal(InsightError, "Key value is not a string.");
             expect(response).to.be.instanceOf(InsightError);
         }
-    });
-
-    it("Should add dataset with 1 valid section", function () {
-        const id: string = "ValidSection";
-        const expected: string[] = [id];
-        return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
-            expect(result).to.deep.equal(expected);
-        }).catch((err: any) => {
-            Log.error(err);
-            expect.fail(err, expected, "Should not have rejected");
-        });
-    });
-
-    it("Should add dataset with emptytype in section", function () {
-        const id: string = "EmptyType";
-        const expected: string[] = [id];
-        return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
-            expect(result).to.deep.equal(expected);
-        }).catch((err: any) => {
-            Log.error(err);
-            expect.fail(err, expected, "Should not have rejected");
-        });
-    });
-
-    it("Should add dataset with anything in section", function () {
-        const id: string = "SpaceType";
-        const expected: string[] = [id];
-        return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then((result: string[]) => {
-            expect(result).to.deep.equal(expected);
-        }).catch((err: any) => {
-            Log.error(err);
-            expect.fail(err, expected, "Should not have rejected");
-        });
     });
 
     it("Should not add with missing type", async () => {
@@ -440,7 +396,7 @@ describe("InsightFacade Add/Remove Dataset", function () {
     it("Remove wrong dataset", async () => {
         let response: string;
         const id: string = "courses";
-        const id2: string = "rooms2";
+        const id2: string = "rooms";
         try {
             await insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
             response = await insightFacade.removeDataset(id);
@@ -549,9 +505,9 @@ describe("InsightFacade Add/Remove Dataset", function () {
 
     it("List dataset with multiple courses", function () {
         const id: string = "courses";
-        const id2: string = "rooms2";
+        const id2: string = "rooms";
         const expected: InsightDataset[] = [{id: "courses", kind: InsightDatasetKind.Courses, numRows: 64612}
-        , {id: "rooms2", kind: InsightDatasetKind.Rooms, numRows: 64612}];
+        , {id: "rooms", kind: InsightDatasetKind.Rooms, numRows: 364}];
         return insightFacade.addDataset(id, datasets[id], InsightDatasetKind.Courses).then ((result: string[]) => {
             return insightFacade.addDataset(id2, datasets[id2], InsightDatasetKind.Rooms);
         }).then((response: string[]) => {
@@ -572,7 +528,8 @@ describe("InsightFacade Add/Remove Dataset", function () {
  */
 describe("InsightFacade PerformQuery", () => {
     const datasetsToQuery: { [id: string]: any } = {
-        courses: {id: "courses", path: "./test/data/courses.zip", kind: InsightDatasetKind.Courses}
+        courses: {id: "courses", path: "./test/data/courses.zip", kind: InsightDatasetKind.Courses},
+        courses2: {id: "rooms", path: "./test/data/rooms.zip", kind: InsightDatasetKind.Rooms}
     };
     let insightFacade: InsightFacade = new InsightFacade();
     let testQueries: ITestQuery[] = [];

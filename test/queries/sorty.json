@@ -1,0 +1,31 @@
+{
+    "title": "test with Complex ORDER DOWN Without TRANS",
+    "query": {
+        "WHERE": {
+            "AND": [
+                {
+                    "IS": {
+                        "courses_dept": "cpsc"
+                    }
+                },
+                {
+                    "GT": {
+                        "courses_avg": 90
+                    }
+                }
+            ]
+        },
+        "OPTIONS": {
+            "COLUMNS": [
+                "courses_avg"
+            ],
+            "ORDER": {
+                "keys": [
+                    "courses_avg"
+                ],
+                "dir": "UP"
+            }
+        }
+    },
+    "isQueryValid": true,
+    "result":[{"courses_avg":90.11},{"courses_avg":90.11},{"courses_avg":90.14},{"courses_avg":90.25},{"courses_avg":90.25},{"courses_avg":90.27},{"courses_avg":90.53},{"courses_avg":90.53},{"courses_avg":90.6},{"courses_avg":90.6},{"courses_avg":90.71},{"courses_avg":90.71},{"courses_avg":91},{"courses_avg":91},{"courses_avg":91.22},{"courses_avg":91.22},{"courses_avg":91.22},{"courses_avg":91.22},{"courses_avg":91.25},{"courses_avg":91.25},{"courses_avg":91.79},{"courses_avg":91.79},{"courses_avg":92},{"courses_avg":92},{"courses_avg":92.4},{"courses_avg":92.4},{"courses_avg":92.43},{"courses_avg":92.43},{"courses_avg":92.5},{"courses_avg":92.5},{"courses_avg":92.63},{"courses_avg":92.63},{"courses_avg":92.75},{"courses_avg":92.75},{"courses_avg":93.38},{"courses_avg":93.38},{"courses_avg":93.5},{"courses_avg":93.5},{"courses_avg":94},{"courses_avg":94},{"courses_avg":94.5},{"courses_avg":94.5},{"courses_avg":95},{"courses_avg":95}]}
