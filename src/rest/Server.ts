@@ -51,9 +51,7 @@ export default class Server {
         return new Promise(function (fulfill, reject) {
             try {
                 Log.info("Server::start() - start");
-                that.rest = restify.createServer({
-                    name: "insightUBC",
-                });
+                that.rest = restify.createServer({name: "insightUBC", });
                 that.rest.use(restify.bodyParser({mapFiles: true, mapParams: true}));
                 that.rest.use(
                     function crossOrigin(req, res, next) {
@@ -64,41 +62,34 @@ export default class Server {
                 that.rest.get("/echo/:msg", Server.echo);
                 that.rest.put("/dataset/:id/:kind",
                     (req: restify.Request, res: restify.Response, next: restify.Next) => {
-                        let buffer = Buffer.from(req.body, "base64");
-                        let content = JSON.stringify(buffer);
-                        let kind: InsightDatasetKind;
-                        if (req.params.kind === "courses") {
-                            kind = InsightDatasetKind.Courses;
-                        } else if (req.params.kind === "rooms") {
-                            kind = InsightDatasetKind.Rooms;
-                        }
-                        return insightFacade.addDataset(req.params.id, content, kind).then((result: any) => {
+                        let kind = Server.checkKind(req.params.kind);
+                        return insightFacade.addDataset(req.params.id, req.body, kind).then((result: any) => {
                             res.json(200, {result: result});
                             return next();
                         }).catch((error: any) => {
-                            res.json(400, {error: error});
+                            res.json(400, {error: error.message});
                             return next();
                         });
-                    });
+                });
                 that.rest.del("/dataset/:id", (req: restify.Request, res: restify.Response, next: restify.Next) => {
-                        return insightFacade.removeDataset(req.params.id).then((result: any) => {
-                            res.json(200, {result: result});
-                            return next();
-                        }).catch((error: any) => {
-                            if (error instanceof InsightError) {
-                                res.json(400, {error: error});
-                            } else if (error instanceof NotFoundError) {
-                                res.json(404, {error: error});
-                            }
-                            return next();
-                        });
+                    return insightFacade.removeDataset(req.params.id).then((result: any) => {
+                        res.json(200, {result: result});
+                        return next();
+                    }).catch((error: any) => {
+                        if (error instanceof InsightError) {
+                            res.json(400, {error: error.message});
+                        } else if (error instanceof NotFoundError) {
+                            res.json(404, {error: error.message});
+                        }
+                        return next();
                     });
+                });
                 that.rest.post("/query", (req: restify.Request, res: restify.Response, next: restify.Next) => {
                     return insightFacade.performQuery(req.body).then((result: any) => {
                         res.json(200, {result: result});
                         return next();
                     }).catch((error: any) => {
-                        res.json(400, {error: error});
+                        res.json(400, {error: error.message});
                         return next();
                     });
                 });
@@ -165,5 +156,26 @@ export default class Server {
             return next();
         });
     }
+
+    private static checkKind(reqKind: string): InsightDatasetKind {
+        if (reqKind === "courses") {
+            return InsightDatasetKind.Courses;
+        } else if (reqKind === "rooms") {
+            return InsightDatasetKind.Rooms;
+        }
+    }
+
+    private static putHelper(req: restify.Request, res: restify.Response, next: restify.Next) {
+        let kind = Server.checkKind(req.params.kind);
+        let insightFacade = new InsightFacade();
+        return insightFacade.addDataset(req.params.id, req.body, kind).then((result: any) => {
+            res.json(200, {result: result});
+            return next();
+        }).catch((error: any) => {
+            res.json(400, {error: error.message});
+            return next();
+        });
+    }
+
 
 }
