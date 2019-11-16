@@ -5,6 +5,8 @@
 import fs = require("fs");
 import restify = require("restify");
 import Log from "../Util";
+import InsightFacade from "../controller/InsightFacade";
+import {InsightDatasetKind, InsightError, NotFoundError} from "../controller/IInsightFacade";
 
 /**
  * This configures the REST endpoints for the server.
@@ -44,10 +46,11 @@ export default class Server {
      */
     public start(): Promise<boolean> {
         const that = this;
+        let insightFacade = new InsightFacade();
+        // eslint-disable-next-line @typescript-eslint/tslint/config
         return new Promise(function (fulfill, reject) {
             try {
                 Log.info("Server::start() - start");
-
                 that.rest = restify.createServer({
                     name: "insightUBC",
                 });
@@ -58,28 +61,61 @@ export default class Server {
                         res.header("Access-Control-Allow-Headers", "X-Requested-With");
                         return next();
                     });
-
-                // This is an example endpoint that you can invoke by accessing this URL in your browser:
-                // http://localhost:4321/echo/hello
                 that.rest.get("/echo/:msg", Server.echo);
-
-                // NOTE: your endpoints should go here
-
-                // This must be the last endpoint!
+                that.rest.put("/dataset/:id/:kind",
+                    (req: restify.Request, res: restify.Response, next: restify.Next) => {
+                        let buffer = Buffer.from(req.body, "base64");
+                        let content = JSON.stringify(buffer);
+                        let kind: InsightDatasetKind;
+                        if (req.params.kind === "courses") {
+                            kind = InsightDatasetKind.Courses;
+                        } else if (req.params.kind === "rooms") {
+                            kind = InsightDatasetKind.Rooms;
+                        }
+                        return insightFacade.addDataset(req.params.id, content, kind).then((result: any) => {
+                            res.json(200, {result: result});
+                            return next();
+                        }).catch((error: any) => {
+                            res.json(400, {error: error});
+                            return next();
+                        });
+                    });
+                that.rest.del("/dataset/:id", (req: restify.Request, res: restify.Response, next: restify.Next) => {
+                        return insightFacade.removeDataset(req.params.id).then((result: any) => {
+                            res.json(200, {result: result});
+                            return next();
+                        }).catch((error: any) => {
+                            if (error instanceof InsightError) {
+                                res.json(400, {error: error});
+                            } else if (error instanceof NotFoundError) {
+                                res.json(404, {error: error});
+                            }
+                            return next();
+                        });
+                    });
+                that.rest.post("/query", (req: restify.Request, res: restify.Response, next: restify.Next) => {
+                    return insightFacade.performQuery(req.body).then((result: any) => {
+                        res.json(200, {result: result});
+                        return next();
+                    }).catch((error: any) => {
+                        res.json(400, {error: error});
+                        return next();
+                    });
+                });
+                that.rest.get("/datasets", (req: restify.Request, res: restify.Response, next: restify.Next) => {
+                    return insightFacade.listDatasets().then((result: any) => {
+                        res.json(200, {result: result});
+                    });
+                });
                 that.rest.get("/.*", Server.getStatic);
-
                 that.rest.listen(that.port, function () {
                     Log.info("Server::start() - restify listening: " + that.rest.url);
                     fulfill(true);
                 });
-
                 that.rest.on("error", function (err: string) {
-                    // catches errors in restify start; unusual syntax due to internal
-                    // node not using normal exceptions here
                     Log.info("Server::start() - restify ERROR: " + err);
                     reject(err);
                 });
-
             } catch (err) {
                 Log.error("Server::start() - ERROR: " + err);
                 reject(err);
