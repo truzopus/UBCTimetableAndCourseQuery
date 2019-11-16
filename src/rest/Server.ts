@@ -46,8 +46,7 @@ export default class Server {
      */
     public start(): Promise<boolean> {
         const that = this;
-        let insightFacade = new InsightFacade();
-        // eslint-disable-next-line @typescript-eslint/tslint/config
+        let IF = new InsightFacade();
         return new Promise(function (fulfill, reject) {
             try {
                 Log.info("Server::start() - start");
@@ -62,43 +61,39 @@ export default class Server {
                 that.rest.get("/echo/:msg", Server.echo);
                 that.rest.put("/dataset/:id/:kind",
                     (req: restify.Request, res: restify.Response, next: restify.Next) => {
-                        let kind = Server.checkKind(req.params.kind);
-                        return insightFacade.addDataset(req.params.id, req.body, kind).then((result: any) => {
+                        return IF.addDataset(req.params.id, req.body, Server.c(req.params.kind)).then((result: any) => {
                             res.json(200, {result: result});
                         }).catch((error: any) => {
                             res.json(400, {error: error.message});
                         });
                     });
                 that.rest.del("/dataset/:id", (req: restify.Request, res: restify.Response, next: restify.Next) => {
-                    return insightFacade.removeDataset(req.params.id).then((result: any) => {
+                    return IF.removeDataset(req.params.id).then((result: any) => {
                         res.json(200, {result: result});
                     }).catch((error: any) => {
                         res.json(Server.deleteHelper(error), {error: error.message});
                     });
                 });
                 that.rest.post("/query", (req: restify.Request, res: restify.Response, next: restify.Next) => {
-                    return insightFacade.performQuery(req.body).then((result: any) => {
+                    return IF.performQuery(req.body).then((result: any) => {
                         res.json(200, {result: result});
                     }).catch((error: any) => {
                         res.json(400, {error: error.message});
                     });
                 });
                 that.rest.get("/datasets", (req: restify.Request, res: restify.Response, next: restify.Next) => {
-                    return insightFacade.listDatasets().then((result: any) => {
+                    return IF.listDatasets().then((result: any) => {
                         res.json(200, {result: result});
                     });
                 });
                 that.rest.get("/.*", Server.getStatic);
                 that.rest.listen(that.port, function () {
-                    Log.info("Server::start() - restify listening: " + that.rest.url);
                     fulfill(true);
                 });
                 that.rest.on("error", function (err: string) {
-                    Log.info("Server::start() - restify ERROR: " + err);
                     reject(err);
                 });
             } catch (err) {
-                Log.error("Server::start() - ERROR: " + err);
                 reject(err);
             }
         });
@@ -147,7 +142,7 @@ export default class Server {
         });
     }
 
-    private static checkKind(reqKind: string): InsightDatasetKind {
+    private static c(reqKind: string): InsightDatasetKind {
         if (reqKind === "courses") {
             return InsightDatasetKind.Courses;
         } else if (reqKind === "rooms") {
