@@ -5,8 +5,8 @@ export default class ExtractHtml {
         if (obj[key] === value) {
             return obj;
         } else {
-            for (let i = 0, len = Object.keys(obj).length; i < len; i++) {
-                let myKey = Object.keys(obj)[i];
+            for (let c in Object.keys(obj)) {
+                let myKey = Object.keys(obj)[c];
                 let objectValue = obj[myKey];
                 if (myKey !== "parentNode" && typeof objectValue === "object") {
                     let found: any = this.findNested(obj[myKey], key, value);
@@ -21,22 +21,22 @@ export default class ExtractHtml {
     public static findNestedBuildingInfo(obj: any, roomSection: any[]): any[] {
         let div = this.findHelper(obj["childNodes"], "div");
         let divList: any[] = [];
-        for (let i = 0, len = div.length; i < len; i++) {
+        for (let i in div) {
             divList.push(div[i]["childNodes"]);
         }
         let divSubList: any[] = [];
-        for (let j = 0, lens = divList.length; j < lens; j++) {
+        for (let j in divList) {
             let temp = this.findHelper(divList[j], "div");
             if (temp.length > 0) {
-                for (let k = 0, l = temp.length; k < l; k++) {
+                for (let k in temp) {
                     divSubList.push(temp[k]);
                 }
             }
         }
         let final: any[] = [];
-        for (let i = 0, len = divSubList.length; i < len; i++) {
+        for (let i in divSubList) {
             let attrN = divSubList[i]["attrs"];
-            for (let j = 0, lens = attrN.length; j < lens; j++) {
+            for (let j in attrN) {
                 let myKey = attrN[j]["name"];
                 let myValue = attrN[j]["value"];
                 if (myKey === "id" && myValue === "main") {
@@ -46,19 +46,18 @@ export default class ExtractHtml {
         }
         let sect: any = this.findNested(final[0], "nodeName", "section");
         let sectDivCN: any[] = [];
-        for (let i = 0, len = Object.keys(sect["childNodes"]).length; i < len; i++) {
+        for (let i in Object.keys(sect["childNodes"])) {
             if (sect["childNodes"][i]["nodeName"] === "div") {
                 let child = sect["childNodes"][i]["childNodes"];
-                for (let j = 0, lens = child.length; j < lens; j++) {
+                for (let j in child) {
                     if (child[j]["nodeName"] === "div") {
                         sectDivCN.push(child[j]);
-                        let n = 0;
                     }
                 }
             }
         }
         let body: any[] = [];
-        for (let i = 0, len = sectDivCN.length; i < len; i++) {
+        for (let i in sectDivCN) {
             let attrsCN = sectDivCN[i]["attrs"];
             if (attrsCN[0]["name"] === "class" && attrsCN[0]["value"] === "view-content") {
                 body.push(sectDivCN[i]);
@@ -72,7 +71,7 @@ export default class ExtractHtml {
     public static findHelper2(obj: any, key: string): any[] {
         let output: any[] = [];
         let cn = obj["childNodes"];
-        for (let i = 0, len = Object.keys(cn).length; i < len; i++) {
+        for (let i in Object.keys(cn)) {
             if (cn[i]["nodeName"] === key) {
                 output.push(cn[i]);
             }
@@ -82,7 +81,7 @@ export default class ExtractHtml {
 
     public static findHelper(obj: any, key: string): any[] {
         let output: any[] = [];
-        for (let i = 0, len = Object.keys(obj).length; i < len; i++) {
+        for (let i in Object.keys(obj)) {
             let myKey = Object.keys(obj)[i];
             if (obj[i]["nodeName"] === key && obj[i] !== undefined) {
                 output.push(obj[myKey]);
@@ -94,10 +93,10 @@ export default class ExtractHtml {
     public static findNestedAtr(obj: any): any[] {
         let output = this.findHelper(obj, "tr");
         let final: any[] = [];
-        for (let i = 0, len = output.length; i < len; i++) {
+        for (let i in output) {
             let cn1 = output[i]["childNodes"];
             let cn1H = this.findHelper(cn1, "td");
-            for (let is = 0, lens = Object.keys(cn1H).length; is < lens; is++) {
+            for (let is in Object.keys(cn1H)) {
                 let temp = cn1H[is]["childNodes"];
                 if (Object.keys(temp).length > 1) {
                     let a: any = this.findHelper(temp, "a");
@@ -115,7 +114,7 @@ export default class ExtractHtml {
     public static parseRoom(roominfo: any[], roomSection: any) {
         let body: any[] = roominfo[0]["childNodes"];
         let fieldContent: any[] = [];
-        for (let i = 0, len = body.length; i < len; i++) {
+        for (let i in body) {
             if (body[i]["nodeName"] === "div") {
                 fieldContent = body[i]["childNodes"];
             }
@@ -124,7 +123,7 @@ export default class ExtractHtml {
         this.parseHelper(fieldContent, fCN, "div");
         let fCN2: any[] = [];
         this.checkAttr(fCN, "id", "building-info", fCN2);
-        for (let i = 0, len = fCN[0]["childNodes"].length; i < len; i++) {
+        for (let i in fCN[0]["childNodes"]) {
             if (fCN[0]["childNodes"][i]["nodeName"] === "h2") {
                 let span = fCN[0]["childNodes"][i]["childNodes"];
                 roomSection["rooms_fullname"] = span[0]["childNodes"][0]["value"];
@@ -132,9 +131,9 @@ export default class ExtractHtml {
         }
         let add: any[] = [];
         this.parseHelper(fCN2, add, "div");
-        for (let i = 0, len = add.length; i < len; i++) {
+        for (let i in add) {
             let addCN = add[i]["childNodes"];
-            for (let j = 0, lens = addCN.length; j < lens; j++) {
+            for (let j in addCN) {
                 let addCN2 = addCN[j]["childNodes"];
                 if (addCN2[0]["nodeName"] === "#text" && addCN2.length === 1
                     && !addCN2[0]["value"].includes("Building Hours")) {
@@ -146,11 +145,11 @@ export default class ExtractHtml {
     }
 
     public static parseHelper(obj: any[], array: any[], key: string) {
-        for (let j = 0, lens = obj.length; j < lens; j++) {
+        for (let j in obj) {
             let objCN = obj[j]["childNodes"];
             if (obj[j]["nodeName"] === key && objCN !== undefined) {
                 let objSub = obj[j]["childNodes"];
-                for (let i = 0, len = objSub.length; i < len; i++) {
+                for (let i in objSub) {
                     if (objSub[i]["nodeName"] === key) {
                         array.push(objSub[i]);
                     }
@@ -160,7 +159,7 @@ export default class ExtractHtml {
     }
 
     public static checkAttr(obj: any[], name: string, value: string, array: any[]) {
-        for (let i = 0, len = obj.length; i < len; i++) {
+        for (let i in obj) {
             let attr = obj[i]["attrs"][0];
             if (attr["name"] === name && attr["value"] === value) {
                 array.push(obj[i]);
@@ -181,10 +180,10 @@ export default class ExtractHtml {
 
     public static parseTableHelper2(tr: any): any[] {
         let td: any[] = [];
-        for (let i = 0, len = tr.length; i < len; i++) {
+        for (let i in tr) {
             if (tr[i]["nodeName"] !== "#text") {
                 let trChild = tr[i]["childNodes"];
-                for (let j = 0, lens = trChild.length; j < lens; j++) {
+                for (let j in trChild) {
                     let tds = trChild[j];
                     if (tds["nodeName"] !== "#text") {
                         td.push(tds);
@@ -204,11 +203,11 @@ export default class ExtractHtml {
         let rName: any[] = [];
         let sName: any[] = [];
         let td = this.parseTableHelper2(tr);
-        for (let i = 0, len = td.length; i < len; i++) {
+        for (let i in td) {
             let cap = td[i]["childNodes"];
             if (td[i]["attrs"][0]["value"] === "views-field views-field-field-room-number") {
                 let tdA = td[i]["childNodes"];
-                for (let a = 0, lens = tdA.length; a < lens; a++) {
+                for (let a in tdA) {
                     if (tdA[a]["nodeName"] === "a") {
                         let h = tdA[a]["attrs"];
                         let link = this.getHref(h);
@@ -245,10 +244,9 @@ export default class ExtractHtml {
     }
 
     public static getHref(array: any[]): string {
-        for (let i = 0, len = array.length; i < len; i++) {
-            let c = array[i];
-            if (array[i]["name"] === "href") {
-                return array[i]["value"];
+        for (let c in array) {
+            if (array[c]["name"] === "href") {
+                return array[c]["value"];
             }
         }
     }
@@ -263,7 +261,7 @@ export default class ExtractHtml {
     }
 
     public static pushDatafile(dataFile: any[], roomFile: any[], roomSection: any): void {
-        for (let i = 0, len = roomFile[1][0].length; i < len; i++) {
+        for (let i in roomFile[1][0]) {
             let section: any = {};
             section["rooms_fullname"] = roomSection["rooms_fullname"];
             section["rooms_address"] = roomSection["rooms_address"];

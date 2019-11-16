@@ -5,6 +5,8 @@
 import fs = require("fs");
 import restify = require("restify");
 import Log from "../Util";
+import InsightFacade from "../controller/InsightFacade";
+import {InsightDatasetKind, InsightError, NotFoundError} from "../controller/IInsightFacade";
 
 /**
  * This configures the REST endpoints for the server.
@@ -44,13 +46,11 @@ export default class Server {
      */
     public start(): Promise<boolean> {
         const that = this;
+        let IF = new InsightFacade();
         return new Promise(function (fulfill, reject) {
             try {
                 Log.info("Server::start() - start");
-
-                that.rest = restify.createServer({
-                    name: "insightUBC",
-                });
+                that.rest = restify.createServer({name: "insightUBC", });
                 that.rest.use(restify.bodyParser({mapFiles: true, mapParams: true}));
                 that.rest.use(
                     function crossOrigin(req, res, next) {
@@ -58,30 +58,42 @@ export default class Server {
                         res.header("Access-Control-Allow-Headers", "X-Requested-With");
                         return next();
                     });
-
-                // This is an example endpoint that you can invoke by accessing this URL in your browser:
-                // http://localhost:4321/echo/hello
                 that.rest.get("/echo/:msg", Server.echo);
-
-                // NOTE: your endpoints should go here
-
-                // This must be the last endpoint!
+                that.rest.put("/dataset/:id/:kind",
+                    (req: restify.Request, res: restify.Response, next: restify.Next) => {
+                        return IF.addDataset(req.params.id, req.body, Server.c(req.params.kind)).then((result: any) => {
+                            res.json(200, {result: result});
+                        }).catch((error: any) => {
+                            res.json(400, {error: error.message});
+                        });
+                    });
+                that.rest.del("/dataset/:id", (req: restify.Request, res: restify.Response, next: restify.Next) => {
+                    return IF.removeDataset(req.params.id).then((result: any) => {
+                        res.json(200, {result: result});
+                    }).catch((error: any) => {
+                        res.json(Server.deleteHelper(error), {error: error.message});
+                    });
+                });
+                that.rest.post("/query", (req: restify.Request, res: restify.Response, next: restify.Next) => {
+                    return IF.performQuery(req.body).then((result: any) => {
+                        res.json(200, {result: result});
+                    }).catch((error: any) => {
+                        res.json(400, {error: error.message});
+                    });
+                });
+                that.rest.get("/datasets", (req: restify.Request, res: restify.Response, next: restify.Next) => {
+                    return IF.listDatasets().then((result: any) => {
+                        res.json(200, {result: result});
+                    });
+                });
                 that.rest.get("/.*", Server.getStatic);
-
                 that.rest.listen(that.port, function () {
-                    Log.info("Server::start() - restify listening: " + that.rest.url);
                     fulfill(true);
                 });
-
                 that.rest.on("error", function (err: string) {
-                    // catches errors in restify start; unusual syntax due to internal
-                    // node not using normal exceptions here
-                    Log.info("Server::start() - restify ERROR: " + err);
                     reject(err);
                 });
-
             } catch (err) {
-                Log.error("Server::start() - ERROR: " + err);
                 reject(err);
             }
         });
@@ -130,4 +142,19 @@ export default class Server {
         });
     }
 
+    private static c(reqKind: string): InsightDatasetKind {
+        if (reqKind === "courses") {
+            return InsightDatasetKind.Courses;
+        } else if (reqKind === "rooms") {
+            return InsightDatasetKind.Rooms;
+        }
+    }
+
+    private static deleteHelper(error: any): number {
+        if (error instanceof InsightError) {
+           return 400;
+        } else if (error instanceof NotFoundError) {
+            return 404;
+        }
+    }
 }
