@@ -65,32 +65,22 @@ export default class Server {
                         let kind = Server.checkKind(req.params.kind);
                         return insightFacade.addDataset(req.params.id, req.body, kind).then((result: any) => {
                             res.json(200, {result: result});
-                            return next();
                         }).catch((error: any) => {
                             res.json(400, {error: error.message});
-                            return next();
                         });
-                });
+                    });
                 that.rest.del("/dataset/:id", (req: restify.Request, res: restify.Response, next: restify.Next) => {
                     return insightFacade.removeDataset(req.params.id).then((result: any) => {
                         res.json(200, {result: result});
-                        return next();
                     }).catch((error: any) => {
-                        if (error instanceof InsightError) {
-                            res.json(400, {error: error.message});
-                        } else if (error instanceof NotFoundError) {
-                            res.json(404, {error: error.message});
-                        }
-                        return next();
+                        res.json(Server.deleteHelper(error), {error: error.message});
                     });
                 });
                 that.rest.post("/query", (req: restify.Request, res: restify.Response, next: restify.Next) => {
-                    return insightFacade.performQuery(req.body).then((result: any) => {
+                    return insightFacade.performQuery(req.body.data).then((result: any) => {
                         res.json(200, {result: result});
-                        return next();
                     }).catch((error: any) => {
                         res.json(400, {error: error.message});
-                        return next();
                     });
                 });
                 that.rest.get("/datasets", (req: restify.Request, res: restify.Response, next: restify.Next) => {
@@ -165,17 +155,11 @@ export default class Server {
         }
     }
 
-    private static putHelper(req: restify.Request, res: restify.Response, next: restify.Next) {
-        let kind = Server.checkKind(req.params.kind);
-        let insightFacade = new InsightFacade();
-        return insightFacade.addDataset(req.params.id, req.body, kind).then((result: any) => {
-            res.json(200, {result: result});
-            return next();
-        }).catch((error: any) => {
-            res.json(400, {error: error.message});
-            return next();
-        });
+    private static deleteHelper(error: any): number {
+        if (error instanceof InsightError) {
+           return 400;
+        } else if (error instanceof NotFoundError) {
+            return 404;
+        }
     }
-
-
 }
