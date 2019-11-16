@@ -77,7 +77,7 @@ export default class Server {
                     });
                 });
                 that.rest.post("/query", (req: restify.Request, res: restify.Response, next: restify.Next) => {
-                    return insightFacade.performQuery(req.body.data).then((result: any) => {
+                    return insightFacade.performQuery(req.body).then((result: any) => {
                         res.json(200, {result: result});
                     }).catch((error: any) => {
                         res.json(400, {error: error.message});
