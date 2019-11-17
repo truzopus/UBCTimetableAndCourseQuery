@@ -29,15 +29,15 @@ CampusExplorer.buildQuery = function () {
         }
     }
     if (conditions.childNodes.length > 1) {
-        if (document.getElementById("courses-conditiontype-all").checked) {
+        if (document.getElementById(id + "-conditiontype-all").checked) {
             query.WHERE.AND = [];
-            for (key of conditions.childNodes) {
-                let not = conditions.getElementsByClassName("control not")[0].getElementsByTagName("input")[0].checked;
-                let temp = conditions.getElementsByClassName("control fields")[0].getElementsByTagName("select")[0];
+            for (let key of conditions.childNodes) {
+                let not = key.getElementsByClassName("control not")[0].getElementsByTagName("input")[0].checked;
+                let temp = key.getElementsByClassName("control fields")[0].getElementsByTagName("select")[0];
                 let field = temp.options[temp.selectedIndex].value;
-                let temp2 = conditions.getElementsByClassName("control operators")[0].getElementsByTagName("select")[0];
+                let temp2 = key.getElementsByClassName("control operators")[0].getElementsByTagName("select")[0];
                 let operator = temp2.options[temp2.selectedIndex].value;
-                let val = conditions.getElementsByClassName("control term")[0].getElementsByTagName("input")[0].value;
+                let val = key.getElementsByClassName("control term")[0].getElementsByTagName("input")[0].value;
                 if (not) {
                     let json = {};
                     json[id + "_" + field] = val;
@@ -53,15 +53,15 @@ CampusExplorer.buildQuery = function () {
                     query.WHERE.AND.push(json2);
                 }
             }
-        } else if (document.getElementById("courses-conditiontype-any").checked) {
+        } else if (document.getElementById(id + "-conditiontype-any").checked) {
             query.WHERE.OR = [];
-            for (key of conditions.childNodes) {
-                let not = conditions.getElementsByClassName("control not")[0].getElementsByTagName("input")[0].checked;
-                let temp = conditions.getElementsByClassName("control fields")[0].getElementsByTagName("select")[0];
+            for (let key of conditions.childNodes) {
+                let not = key.getElementsByClassName("control not")[0].getElementsByTagName("input")[0].checked;
+                let temp = key.getElementsByClassName("control fields")[0].getElementsByTagName("select")[0];
                 let field = temp.options[temp.selectedIndex].value;
-                let temp2 = conditions.getElementsByClassName("control operators")[0].getElementsByTagName("select")[0];
+                let temp2 = key.getElementsByClassName("control operators")[0].getElementsByTagName("select")[0];
                 let operator = temp2.options[temp2.selectedIndex].value;
-                let val = conditions.getElementsByClassName("control term")[0].getElementsByTagName("input")[0].value;
+                let val = key.getElementsByClassName("control term")[0].getElementsByTagName("input")[0].value;
                 if (not) {
                     let json = {};
                     json[id + "_" + field] = val;
@@ -77,15 +77,16 @@ CampusExplorer.buildQuery = function () {
                     query.WHERE.OR.push(json2);
                 }
             }
-        } else if (document.getElementById("courses-conditiontype-none").checked) {
+        } else if (document.getElementById(id + "-conditiontype-none").checked) {
+            query.WHERE.NOT = {};
             query.WHERE.NOT.OR = [];
-            for (key of conditions.childNodes) {
-                let not = conditions.getElementsByClassName("control not")[0].getElementsByTagName("input")[0].checked;
-                let temp = conditions.getElementsByClassName("control fields")[0].getElementsByTagName("select")[0];
+            for (let key of conditions.childNodes) {
+                let not = key.getElementsByClassName("control not")[0].getElementsByTagName("input")[0].checked;
+                let temp = key.getElementsByClassName("control fields")[0].getElementsByTagName("select")[0];
                 let field = temp.options[temp.selectedIndex].value;
-                let temp2 = conditions.getElementsByClassName("control operators")[0].getElementsByTagName("select")[0];
+                let temp2 = key.getElementsByClassName("control operators")[0].getElementsByTagName("select")[0];
                 let operator = temp2.options[temp2.selectedIndex].value;
-                let val = conditions.getElementsByClassName("control term")[0].getElementsByTagName("input")[0].value;
+                let val = key.getElementsByClassName("control term")[0].getElementsByTagName("input")[0].value;
                 if (not) {
                     let json = {};
                     json[id + "_" + field] = val;
@@ -109,26 +110,36 @@ CampusExplorer.buildQuery = function () {
             query.OPTIONS.COLUMNS.push(id + "_" + key.getElementsByTagName("input")[0].value);
         }
     }
+    let transColumn = document.getElementById("tab-" + id).getElementsByClassName("form-group columns")[0].getElementsByClassName("control-group")[0].getElementsByClassName("control transformation");
+    for (let key of transColumn) {
+        if (key.getElementsByTagName("input")[0].checked) {
+            query.OPTIONS.COLUMNS.push(key.getElementsByTagName("input")[0].value);
+        }
+    }
     let order = document.getElementById("tab-" + id).getElementsByClassName("form-group order")[0].getElementsByClassName("control-group")[0].getElementsByClassName("control order fields")[0].getElementsByTagName("select")[0];
     let orderS = [];
     let down = document.getElementById("tab-" + id).getElementsByClassName("form-group order")[0].getElementsByClassName("control-group")[0].getElementsByClassName("control descending")[0].getElementsByTagName("input")[0].checked;
     for (let key of order) {
-        if (key.selected) {
+        if (key.selected && key.className === "transformation") {
             orderS.push(key.value);
+        } else if (key.selected) {
+            orderS.push(id + "_" + key.value);
         }
     }
     if (orderS.length === 1) {
         if (!down) {
-            query.OPTIONS.ORDER = id + "_" + orderS[0];
+            query.OPTIONS.ORDER = orderS[0];
         } else if (down) {
+            query.OPTIONS.ORDER = {};
             query.OPTIONS.ORDER.dir = "DOWN";
             query.OPTIONS.ORDER.keys = [];
-            query.OPTIONS.ORDER.keys.push(id + "_" + orderS[0]);
+            query.OPTIONS.ORDER.keys.push(orderS[0]);
         }
     } else if (orderS.length > 1) {
+        query.OPTIONS.ORDER = {};
         query.OPTIONS.ORDER.keys = [];
         for (let key of orderS) {
-            query.OPTIONS.ORDER.keys.push(id + "_" + key);
+            query.OPTIONS.ORDER.keys.push(key);
         }
         if (!down) {
             query.OPTIONS.ORDER.dir = "UP";

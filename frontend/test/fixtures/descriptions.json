@@ -1,3 +1,7 @@
 {
-    "query1": "simple query IS comparison for department with two columns and old order syntax"
+    "query1": "simple query IS comparison for department with two columns and old order syntax",
+    "query2": "simple query empty WHERE",
+    "query3": "empty column and order with AND",
+    "query4": "OR with ascending and multiple goups and 1 transformation ROOMS",
+    "query5": "none of the following + multiple transformations"
 }
