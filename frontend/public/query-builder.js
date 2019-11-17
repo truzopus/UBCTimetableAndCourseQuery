@@ -19,13 +19,29 @@ CampusExplorer.buildQuery = function () {
         let temp2 = conditions.getElementsByClassName("control operators")[0].getElementsByTagName("select")[0];
         let operator = temp2.options[temp2.selectedIndex].value;
         let val = conditions.getElementsByClassName("control term")[0].getElementsByTagName("input")[0].value;
+        if (operator !== "IS" && !isNaN(val)) {
+            val = Number(val);
+        }
         if (not) {
             let json = {};
             json[id + "_" + field] = val;
-            query.WHERE.NOT[operator] = json;
+            if (document.getElementById(id + "-conditiontype-none").checked) {
+                query.WHERE.NOT = {};
+                query.WHERE.NOT.NOT = {};
+                query.WHERE.NOT.NOT[operator] = json;
+            } else {
+                query.WHERE.NOT = {};
+                query.WHERE.NOT[operator] = json;
+            }
         } else {
-            query.WHERE[operator] = {};
-            query.WHERE[operator][id + "_" + field] = val; // fix
+            if (document.getElementById(id + "-conditiontype-none").checked) {
+                query.WHERE.NOT = {};
+                query.WHERE.NOT[operator] = {};
+                query.WHERE.NOT[operator][id + "_" + field] = val;
+            } else {
+                query.WHERE[operator] = {};
+                query.WHERE[operator][id + "_" + field] = val;
+            }
         }
     }
     if (conditions.childNodes.length > 1) {
@@ -38,6 +54,9 @@ CampusExplorer.buildQuery = function () {
                 let temp2 = key.getElementsByClassName("control operators")[0].getElementsByTagName("select")[0];
                 let operator = temp2.options[temp2.selectedIndex].value;
                 let val = key.getElementsByClassName("control term")[0].getElementsByTagName("input")[0].value;
+                if (operator !== "IS" && !isNaN(val)) {
+                    val = Number(val);
+                }
                 if (not) {
                     let json = {};
                     json[id + "_" + field] = val;
@@ -62,6 +81,9 @@ CampusExplorer.buildQuery = function () {
                 let temp2 = key.getElementsByClassName("control operators")[0].getElementsByTagName("select")[0];
                 let operator = temp2.options[temp2.selectedIndex].value;
                 let val = key.getElementsByClassName("control term")[0].getElementsByTagName("input")[0].value;
+                if (operator !== "IS" && !isNaN(val)) {
+                    val = Number(val);
+                }
                 if (not) {
                     let json = {};
                     json[id + "_" + field] = val;
@@ -87,6 +109,9 @@ CampusExplorer.buildQuery = function () {
                 let temp2 = key.getElementsByClassName("control operators")[0].getElementsByTagName("select")[0];
                 let operator = temp2.options[temp2.selectedIndex].value;
                 let val = key.getElementsByClassName("control term")[0].getElementsByTagName("input")[0].value;
+                if (operator !== "IS" && !isNaN(val)) {
+                    val = Number(val);
+                }
                 if (not) {
                     let json = {};
                     json[id + "_" + field] = val;

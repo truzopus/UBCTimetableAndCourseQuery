@@ -3,5 +3,8 @@
     "query2": "simple query empty WHERE",
     "query3": "empty column and order with AND",
     "query4": "OR with ascending and multiple goups and 1 transformation ROOMS",
-    "query5": "none of the following + multiple transformations"
+    "query5": "none of the following + multiple transformations",
+    "query6": "none of the following + 1 condition",
+    "query7": "none of the following + 1 not condition",
+    "query8": "1 cond not"
 }
